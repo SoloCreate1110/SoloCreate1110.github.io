@@ -2,17 +2,113 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SoloCreate ゲームサイト</title>
+  <title>たくまろのゲームサイト</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f8fc;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #007acc;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.3em;
+    }
+
+    .card p {
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .card a {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #007acc;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .card a:hover {
+      background: #005fa3;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8em;
+      padding: 20px;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-  <h1>ようこそ SoloCreate ゲームサイトへ！</h1>
-  <p>ここでは自作ゲームを公開していきます。</p>
+  <header>
+    <h1>たくまろのゲームセンター</h1>
+    <p>楽しく遊んで、スキルアップ！</p>
+  </header>
 
-  <h2>公開中のゲーム一覧</h2>
-  <ul>
-    <li><a href="games/janken/index.html">じゃんけんゲーム</a></li>
-    <li><a href="games/reaction/index.html">反射神経テスト</a></li>
+  <main class="container">
+    <div class="card">
+      <h2>じゃんけんゲーム</h2>
+      <p>手を選んで、勝てるかな？カンタンだけど奥が深い！</p>
+      <a href="games/janken/">遊ぶ</a>
+    </div>
 
-  </ul>
+    <div class="card">
+      <h2>反射神経テスト</h2>
+      <p>「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！</p>
+      <a href="games/reaction/">挑戦する</a>
+    </div>
+
+    <!-- ✅ 今後の追加はここにコピーして増やせばOK -->
+    <!--
+    <div class="card">
+      <h2>第3作ゲームタイトル</h2>
+      <p>ゲームの簡単な説明をここに書く</p>
+      <a href="games/game3/">プレイ</a>
+    </div>
+    -->
+  </main>
+
+  <footer>
+    &copy; 2025 たくまろのゲームセンター All Rights Reserved.
+  </footer>
 </body>
 </html>
