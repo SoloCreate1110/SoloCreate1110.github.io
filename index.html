@@ -2,25 +2,31 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>たくまろのゲームセンター</title>
+  <title>Solo Create Game Gather</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f8fc;
+      font-family: 'Baloo 2', cursive;
+      background: linear-gradient(135deg, #e0f7fa, #fce4ec);
       margin: 0;
       padding: 0;
     }
 
     header {
-      background: #007acc;
+      background: #ff6f61;
       color: white;
       padding: 20px 0;
       text-align: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
     h1 {
       margin: 0;
-      font-size: 2em;
+      font-size: 2.2em;
+    }
+
+    p {
+      margin: 5px 0 0;
     }
 
     .container {
@@ -34,41 +40,48 @@
 
     .card {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      text-align: center;
-      transition: transform 0.2s ease;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       position: relative;
     }
 
     .card:hover {
-      transform: scale(1.03);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card img {
+      width: 100%;
+      height: auto;
     }
 
     .card h2 {
-      margin-top: 0;
       font-size: 1.3em;
+      margin: 10px;
     }
 
     .card p {
       font-size: 0.95em;
+      margin: 0 10px 10px;
       color: #555;
     }
 
     .card a {
-      display: inline-block;
-      margin-top: 10px;
+      display: block;
+      margin: 10px auto 20px;
       padding: 8px 16px;
-      background: #007acc;
+      background: #ff6f61;
       color: white;
       text-decoration: none;
       border-radius: 6px;
-      transition: background 0.2s ease;
+      width: 80%;
+      text-align: center;
     }
 
     .card a:hover {
-      background: #005fa3;
+      background: #e64a45;
     }
 
     .favorite-btn {
@@ -77,7 +90,7 @@
       right: 10px;
       background: none;
       border: none;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
     }
 
@@ -94,15 +107,15 @@
 
     .section-title {
       text-align: center;
-      font-size: 1.5em;
-      margin: 30px 0 10px;
+      font-size: 1.6em;
+      margin: 40px 0 10px;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
   <header>
-    <h1>たくまろのゲームセンター</h1>
+    <h1>たくまろのゲームセンター 🕹️</h1>
     <p>お気に入りのゲームを見つけよう！</p>
   </header>
 
@@ -112,9 +125,7 @@
   </div>
 
   <h2 class="section-title">🎮 すべてのゲーム</h2>
-  <main class="container" id="allGamesContainer">
-    <!-- ゲームカードはJSで生成されます -->
-  </main>
+  <main class="container" id="allGamesContainer"></main>
 
   <footer>
     &copy; 2025 たくまろのゲームセンター All Rights Reserved.
@@ -124,15 +135,17 @@
     const games = [
       {
         id: "janken",
-        title: "じゃんけんゲーム",
+        title: "じゃんけんゲーム ✊✋✌️",
         description: "手を選んで、勝てるかな？カンタンだけど奥が深い！",
-        link: "games/janken/"
+        link: "games/janken/",
+        image: "https://via.placeholder.com/300x180?text=Janken"
       },
       {
         id: "reaction",
-        title: "反射神経テスト",
+        title: "反射神経テスト ⚡",
         description: "「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！",
-        link: "games/reaction/"
+        link: "games/reaction/",
+        image: "https://via.placeholder.com/300x180?text=Reaction"
       }
     ];
 
@@ -164,6 +177,11 @@
       star.onclick = () => toggleFavorite(game.id);
       card.appendChild(star);
 
+      const img = document.createElement('img');
+      img.src = game.image;
+      img.alt = game.title;
+      card.appendChild(img);
+
       const h2 = document.createElement('h2');
       h2.innerText = game.title;
       card.appendChild(h2);
@@ -174,48 +192,43 @@
 
       const link = document.createElement('a');
       link.href = game.link;
-      link.innerText = 'プレイ';
+      link.innerText = 'プレイする';
       card.appendChild(link);
 
       return card;
     }
 
-function render() {
-  const favorites = getFavorites();
+    function render() {
+      const favorites = getFavorites();
+      favoritesSection.innerHTML = '';
+      allGamesSection.innerHTML = '';
 
-  favoritesSection.innerHTML = '';
-  allGamesSection.innerHTML = '';
+      const favGames = favorites.map(id => games.find(g => g.id === id)).filter(Boolean);
+      const otherGames = games.filter(g => !favorites.includes(g.id));
 
-  const favGames = favorites
-    .map(id => games.find(g => g.id === id))
-    .filter(Boolean);
+      if (favGames.length === 0) {
+        document.getElementById('favoritesSection').style.display = 'none';
+      } else {
+        document.getElementById('favoritesSection').style.display = 'block';
+        favGames.forEach(g => favoritesSection.appendChild(createCard(g, true)));
+      }
 
-  const otherGames = games.filter(g => !favorites.includes(g.id));
-
-  if (favGames.length === 0) {
-    document.getElementById('favoritesSection').style.display = 'none';
-  } else {
-    document.getElementById('favoritesSection').style.display = 'block';
-    favGames.forEach(g => favoritesSection.appendChild(createCard(g, true)));
-  }
-
-  otherGames.forEach(g => allGamesSection.appendChild(createCard(g, false)));
-}
-
+      otherGames.forEach(g => allGamesSection.appendChild(createCard(g, false)));
+    }
 
     render();
-    
-      new Sortable(favoritesSection, {
-    animation: 150,
-    onEnd: function () {
-      const ids = [...favoritesSection.children].map(card => {
-        const title = card.querySelector('h2').innerText;
-        const game = games.find(g => g.title === title);
-        return game?.id;
-      }).filter(Boolean);
-      localStorage.setItem('favorites', JSON.stringify(ids));
-    }
-  });
+
+    new Sortable(favoritesSection, {
+      animation: 150,
+      onEnd: function () {
+        const ids = [...favoritesSection.children].map(card => {
+          const title = card.querySelector('h2').innerText;
+          const game = games.find(g => g.title === title);
+          return game?.id;
+        }).filter(Boolean);
+        localStorage.setItem('favorites', JSON.stringify(ids));
+      }
+    });
   </script>
 </body>
 </html>
