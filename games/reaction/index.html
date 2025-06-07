@@ -21,28 +21,35 @@
   <p id="result"></p>
 
   <script>
-    let startTime, timeout;
-    const box = document.getElementById('box');
-    const result = document.getElementById('result');
+  let startTime, timeout;
+  const box = document.getElementById('box');
+  const result = document.getElementById('result');
 
-    box.addEventListener('click', () => {
-      if (box.style.backgroundColor === 'green') {
-        const reactionTime = Date.now() - startTime;
-        result.innerText = `反応時間：${reactionTime}ミリ秒！`;
-        box.innerText = 'もう一度';
-        box.style.backgroundColor = 'gray';
-      } else {
-        result.innerText = '';
-        box.innerText = '待って…';
-        box.style.backgroundColor = 'red';
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          box.style.backgroundColor = 'green';
-          box.innerText = '今！';
-          startTime = Date.now();
-        }, Math.random() * 2000 + 2000); // 2〜4秒後
-      }
-    });
-  </script>
+  let history = [];
+
+  box.addEventListener('click', () => {
+    if (box.style.backgroundColor === 'green') {
+      const reactionTime = Date.now() - startTime;
+      history.push(reactionTime);
+      result.innerHTML = `
+        <strong>今回の反応時間：</strong>${reactionTime}ms<br>
+        <strong>過去の記録：</strong>${history.slice(-5).join(', ')}ms
+      `;
+      box.innerText = 'もう一度';
+      box.style.backgroundColor = 'gray';
+    } else {
+      result.innerText = '';
+      box.innerText = '待って…';
+      box.style.backgroundColor = 'red';
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        box.style.backgroundColor = 'green';
+        box.innerText = '今！';
+        startTime = Date.now();
+      }, Math.random() * 2000 + 2000); // 2〜4秒後
+    }
+  });
+</script>
+
 </body>
 </html>
