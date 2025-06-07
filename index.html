@@ -200,6 +200,18 @@
     }
 
     render();
+    
+      new Sortable(favoritesSection, {
+    animation: 150,
+    onEnd: function () {
+      const ids = [...favoritesSection.children].map(card => {
+        const title = card.querySelector('h2').innerText;
+        const game = games.find(g => g.title === title);
+        return game?.id;
+      }).filter(Boolean);
+      localStorage.setItem('favorites', JSON.stringify(ids));
+    }
+  });
   </script>
 </body>
 </html>
