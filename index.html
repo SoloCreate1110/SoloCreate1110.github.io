@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>たくまろのゲームサイト</title>
+  <title>たくまろのゲームセンター</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -39,6 +39,7 @@
       padding: 20px;
       text-align: center;
       transition: transform 0.2s ease;
+      position: relative;
     }
 
     .card:hover {
@@ -70,45 +71,134 @@
       background: #005fa3;
     }
 
+    .favorite-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .favorite-btn.favorited {
+      color: gold;
+    }
+
     footer {
       text-align: center;
       font-size: 0.8em;
       padding: 20px;
       color: #777;
     }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.5em;
+      margin: 30px 0 10px;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>たくまろのゲームセンター</h1>
-    <p>楽しく遊んで、スキルアップ！</p>
+    <p>お気に入りのゲームを見つけよう！</p>
   </header>
 
-  <main class="container">
-    <div class="card">
-      <h2>じゃんけんゲーム</h2>
-      <p>手を選んで、勝てるかな？カンタンだけど奥が深い！</p>
-      <a href="games/janken/">遊ぶ</a>
-    </div>
+  <div id="favoritesSection">
+    <h2 class="section-title">⭐ お気に入り</h2>
+    <div class="container" id="favoritesContainer"></div>
+  </div>
 
-    <div class="card">
-      <h2>反射神経テスト</h2>
-      <p>「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！</p>
-      <a href="games/reaction/">挑戦する</a>
-    </div>
-
-    <!-- ✅ 今後の追加はここにコピーして増やせばOK -->
-    <!--
-    <div class="card">
-      <h2>第3作ゲームタイトル</h2>
-      <p>ゲームの簡単な説明をここに書く</p>
-      <a href="games/game3/">プレイ</a>
-    </div>
-    -->
+  <h2 class="section-title">🎮 すべてのゲーム</h2>
+  <main class="container" id="allGamesContainer">
+    <!-- ゲームカードはJSで生成されます -->
   </main>
 
   <footer>
     &copy; 2025 たくまろのゲームセンター All Rights Reserved.
   </footer>
+
+  <script>
+    const games = [
+      {
+        id: "janken",
+        title: "じゃんけんゲーム",
+        description: "手を選んで、勝てるかな？カンタンだけど奥が深い！",
+        link: "games/janken/"
+      },
+      {
+        id: "reaction",
+        title: "反射神経テスト",
+        description: "「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！",
+        link: "games/reaction/"
+      }
+    ];
+
+    const favoritesSection = document.getElementById('favoritesContainer');
+    const allGamesSection = document.getElementById('allGamesContainer');
+
+    function getFavorites() {
+      return JSON.parse(localStorage.getItem('favorites') || '[]');
+    }
+
+    function toggleFavorite(id) {
+      let favs = getFavorites();
+      if (favs.includes(id)) {
+        favs = favs.filter(f => f !== id);
+      } else {
+        favs.push(id);
+      }
+      localStorage.setItem('favorites', JSON.stringify(favs));
+      render();
+    }
+
+    function createCard(game, isFavorite) {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const star = document.createElement('button');
+      star.className = 'favorite-btn' + (isFavorite ? ' favorited' : '');
+      star.innerText = '★';
+      star.onclick = () => toggleFavorite(game.id);
+      card.appendChild(star);
+
+      const h2 = document.createElement('h2');
+      h2.innerText = game.title;
+      card.appendChild(h2);
+
+      const p = document.createElement('p');
+      p.innerText = game.description;
+      card.appendChild(p);
+
+      const link = document.createElement('a');
+      link.href = game.link;
+      link.innerText = 'プレイ';
+      card.appendChild(link);
+
+      return card;
+    }
+
+    function render() {
+      const favorites = getFavorites();
+
+      favoritesSection.innerHTML = '';
+      allGamesSection.innerHTML = '';
+
+      const favGames = games.filter(g => favorites.includes(g.id));
+      const otherGames = games.filter(g => !favorites.includes(g.id));
+
+      if (favGames.length === 0) {
+        document.getElementById('favoritesSection').style.display = 'none';
+      } else {
+        document.getElementById('favoritesSection').style.display = 'block';
+        favGames.forEach(g => favoritesSection.appendChild(createCard(g, true)));
+      }
+
+      otherGames.forEach(g => allGamesSection.appendChild(createCard(g, false)));
+    }
+
+    render();
+  </script>
 </body>
 </html>
