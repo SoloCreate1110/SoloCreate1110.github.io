@@ -180,24 +180,28 @@
       return card;
     }
 
-    function render() {
-      const favorites = getFavorites();
+function render() {
+  const favorites = getFavorites();
 
-      favoritesSection.innerHTML = '';
-      allGamesSection.innerHTML = '';
+  favoritesSection.innerHTML = '';
+  allGamesSection.innerHTML = '';
 
-      const favGames = games.filter(g => favorites.includes(g.id));
-      const otherGames = games.filter(g => !favorites.includes(g.id));
+  const favGames = favorites
+    .map(id => games.find(g => g.id === id))
+    .filter(Boolean);
 
-      if (favGames.length === 0) {
-        document.getElementById('favoritesSection').style.display = 'none';
-      } else {
-        document.getElementById('favoritesSection').style.display = 'block';
-        favGames.forEach(g => favoritesSection.appendChild(createCard(g, true)));
-      }
+  const otherGames = games.filter(g => !favorites.includes(g.id));
 
-      otherGames.forEach(g => allGamesSection.appendChild(createCard(g, false)));
-    }
+  if (favGames.length === 0) {
+    document.getElementById('favoritesSection').style.display = 'none';
+  } else {
+    document.getElementById('favoritesSection').style.display = 'block';
+    favGames.forEach(g => favoritesSection.appendChild(createCard(g, true)));
+  }
+
+  otherGames.forEach(g => allGamesSection.appendChild(createCard(g, false)));
+}
+
 
     render();
     
