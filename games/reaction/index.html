@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>反射神経テスト</title>
+  <style>
+    body { text-align: center; font-family: sans-serif; padding-top: 100px; }
+    #box {
+      width: 200px; height: 200px;
+      margin: 0 auto; background-color: gray;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>反射神経テスト</h1>
+  <p>「緑」になったらすぐクリック！</p>
+  <div id="box">クリックして開始</div>
+  <p id="result"></p>
+
+  <script>
+    let startTime, timeout;
+    const box = document.getElementById('box');
+    const result = document.getElementById('result');
+
+    box.addEventListener('click', () => {
+      if (box.style.backgroundColor === 'green') {
+        const reactionTime = Date.now() - startTime;
+        result.innerText = `反応時間：${reactionTime}ミリ秒！`;
+        box.innerText = 'もう一度';
+        box.style.backgroundColor = 'gray';
+      } else {
+        result.innerText = '';
+        box.innerText = '待って…';
+        box.style.backgroundColor = 'red';
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          box.style.backgroundColor = 'green';
+          box.innerText = '今！';
+          startTime = Date.now();
+        }, Math.random() * 2000 + 2000); // 2〜4秒後
+      }
+    });
+  </script>
+</body>
+</html>
