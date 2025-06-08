@@ -35,6 +35,12 @@
       margin-top: 10px;
       font-size: 16px;
     }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -51,6 +57,16 @@
     <p><button onclick="goHome()">🏠 ホームに戻る</button></p>
   </div>
 
+  <div class="footer">
+    <p><button onclick="shareToX()">Xで共有</button></p>
+    <!-- <div id="ads">ここに広告が表示されます</div> -->
+    <p id="ranking">ハイスコア: <span id="highscore">0</span></p>
+  </div>
+
+  <audio id="bgm" loop>
+    <source src="../../assets/bgm.mp3" type="audio/mpeg">
+  </audio>
+
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
@@ -61,10 +77,13 @@
     let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
     let current = null;
     let score = 0;
+    let highscore = localStorage.getItem('fallingBlocksHighscore') || 0;
     let dropInterval = 800;
     let lastTime = 0;
     let dropCounter = 0;
     let isGameOver = false;
+
+    document.getElementById('highscore').textContent = highscore;
 
     const pieces = [
       [[1,1,1], [0,1,0]],
@@ -133,6 +152,11 @@
         board.unshift(Array(COLS).fill(0));
         score += 100;
         document.getElementById('score').textContent = `スコア: ${score}`;
+        if (score > highscore) {
+          highscore = score;
+          localStorage.setItem('fallingBlocksHighscore', highscore);
+          document.getElementById('highscore').textContent = highscore;
+        }
         y++;
       }
     }
@@ -179,7 +203,6 @@
       }
     });
 
-    // お気に入り
     const gameId = 'falling-blocks';
     const favoriteBtn = document.getElementById('favoriteBtn');
     function updateFavoriteIcon() {
@@ -197,10 +220,12 @@
     updateFavoriteIcon();
 
     // サウンド
+    const bgm = document.getElementById('bgm');
     let soundEnabled = true;
     document.getElementById('soundToggle').onclick = () => {
       soundEnabled = !soundEnabled;
       document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔈';
+      soundEnabled ? bgm.play() : bgm.pause();
     };
 
     // ダークモード
@@ -213,6 +238,11 @@
 
     function goHome() {
       window.location.href = '../../index.html';
+    }
+
+    function shareToX() {
+      const url = encodeURIComponent(location.href);
+      window.open(`https://twitter.com/intent/tweet?text=落ち物パズルで遊んだよ！&url=${url}`, '_blank');
     }
 
     current = createPiece();
