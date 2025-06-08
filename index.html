@@ -996,11 +996,14 @@
       padding: 0 20px;
       position: relative;
       z-index: 10;
+      display: flex;
+      align-items: center;
     }
 
     .search-bar {
       width: 100%;
       padding: 15px 25px;
+      padding-right: 50px; /* クリアボタンのスペース確保 */
       font-size: 1.1em;
       border: none;
       border-radius: 30px;
@@ -1011,12 +1014,27 @@
       transition: all 0.3s ease;
     }
 
-    .search-bar:focus {
-      outline: none;
-      box-shadow: 
-        0 15px 40px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-      transform: translateY(-2px);
+    .search-clear {
+      position: absolute;
+      right: 35px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.2em;
+      color: #666;
+      cursor: pointer;
+      padding: 5px;
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .search-clear:hover {
+      color: #ff6b6b;
+    }
+
+    .search-clear.visible {
+      display: block;
     }
 
     /* カテゴリフィルター */
@@ -1130,6 +1148,7 @@
   <!-- 検索バー -->
   <div class="search-container">
     <input type="text" class="search-bar" placeholder="ゲームを検索..." id="searchInput">
+    <button class="search-clear" id="searchClear">×</button>
   </div>
 
   <!-- カテゴリフィルター -->
@@ -1175,42 +1194,48 @@
         title: "じゃんけんゲーム ✊✋✌️",
         description: "手を選んで、勝てるかな？カンタンだけど奥が深い！シンプルなルールで誰でも楽しめる定番ゲーム。",
         link: "games/janken/",
-        image: "https://images.pexels.com/photos/3761508/pexels-photo-3761508.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+        image: "https://images.pexels.com/photos/3761508/pexels-photo-3761508.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        category: "skill"
       },
       {
         id: "reaction",
         title: "反射神経テスト ⚡",
         description: "「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！集中力と反応速度が試されるスリリングなゲーム。",
         link: "games/reaction/",
-        image: "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+        image: "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        category: "action"
       },
       {
         id: "target-click",
         title: "的当てゲーム 🎯",
         description: "すばやく正確にクリック！反応速度と集中力を試そう！動く標的を狙い撃ちして高スコアを目指せ。",
         link: "games/target/",
-        image: "https://images.pexels.com/photos/226583/pexels-photo-226583.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+        image: "https://images.pexels.com/photos/226583/pexels-photo-226583.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        category: "action"
       },
       {
         id: "puzzle",
         title: "パズルゲーム 🧩",
         description: "ピースを動かして正しい形を完成させよう！論理的思考と空間認識能力が試される頭脳ゲーム。",
         link: "games/puzzle/",
-        image: "https://images.pexels.com/photos/1040157/pexels-photo-1040157.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+        image: "https://images.pexels.com/photos/1040157/pexels-photo-1040157.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        category: "puzzle"
       },
       {
         id: "typing",
         title: "タイピングチャレンジ ⌨️",
         description: "文章を素早く正確に入力しよう！集中力と反射神経が試されるスピードゲーム。",
         link: "games/typing/",
-        image: "https://images.pexels.com/photos/2115217/pexels-photo-2115217.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+        image: "https://images.pexels.com/photos/2115217/pexels-photo-2115217.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        category: "skill"
       },
       {
         id: "falling-blocks",
         title: "落ち物パズル 🧱",
         description: "ブロックを積んでラインを揃えよう！反射と判断力の勝負だ！",
         link: "games/falling-blocks/",
-        image: "https://images.pexels.com/photos/1040157/pexels-photo-1040157.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+        image: "https://images.pexels.com/photos/1040157/pexels-photo-1040157.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        category: "puzzle"
       },
       {
         id: "number-guessing",
@@ -1355,6 +1380,7 @@
 
       const star = document.createElement('button');
       star.className = 'favorite-btn' + (isFavorite ? ' favorited' : '');
+      star.dataset.gameId = game.id;
       star.innerHTML = '★';
       star.onclick = (e) => {
         e.preventDefault();
@@ -1363,6 +1389,7 @@
           createSparkles(card);
           createConfetti(card);
         }
+        applyFilters();
       };
       card.appendChild(star);
 
@@ -1449,17 +1476,48 @@
       }
     });
 
-    // 検索機能
-    document.getElementById('searchInput').addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
+    let currentSearchTerm = '';
+    let currentCategory = 'all';
+
+    // ひらがな・カタカナ変換関数
+    function normalizeText(text) {
+      return text.toLowerCase()
+        .replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60))
+        .replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
+    }
+
+    // 検索とフィルターの適用
+    function applyFilters() {
       const cards = document.querySelectorAll('.card');
       
       cards.forEach(card => {
-        const title = card.querySelector('h2').textContent.toLowerCase();
-        const description = card.querySelector('p').textContent.toLowerCase();
-        const isVisible = title.includes(searchTerm) || description.includes(searchTerm);
-        card.style.display = isVisible ? 'block' : 'none';
+        const gameId = card.querySelector('.favorite-btn').dataset.gameId;
+        const game = games.find(g => g.id === gameId);
+        const title = normalizeText(card.querySelector('h2').textContent);
+        const description = normalizeText(card.querySelector('p').textContent);
+        const searchMatch = !currentSearchTerm || 
+          title.includes(normalizeText(currentSearchTerm)) || 
+          description.includes(normalizeText(currentSearchTerm));
+        const categoryMatch = currentCategory === 'all' || game.category === currentCategory;
+        
+        card.style.display = searchMatch && categoryMatch ? 'block' : 'none';
       });
+    }
+
+    // 検索機能
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+      currentSearchTerm = e.target.value;
+      const clearButton = document.getElementById('searchClear');
+      clearButton.classList.toggle('visible', currentSearchTerm.length > 0);
+      applyFilters();
+    });
+
+    // 検索クリアボタン
+    document.getElementById('searchClear').addEventListener('click', function() {
+      document.getElementById('searchInput').value = '';
+      currentSearchTerm = '';
+      this.classList.remove('visible');
+      applyFilters();
     });
 
     // カテゴリフィルター
@@ -1467,15 +1525,8 @@
       btn.addEventListener('click', function() {
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        
-        const category = this.dataset.category;
-        const cards = document.querySelectorAll('.card');
-        
-        cards.forEach(card => {
-          const gameId = card.querySelector('.favorite-btn').dataset.gameId;
-          const game = games.find(g => g.id === gameId);
-          card.style.display = category === 'all' || game.category === category ? 'block' : 'none';
-        });
+        currentCategory = this.dataset.category;
+        applyFilters();
       });
     });
 
