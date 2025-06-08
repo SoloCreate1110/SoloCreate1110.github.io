@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>GOOD Game Gather　"GGG"</title>
+  <title>Solo Create Game Gather</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
   <style>
     body {
@@ -31,9 +32,9 @@
 
     .container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
-      padding: 40px;
+      padding: 20px;
       max-width: 1000px;
       margin: auto;
     }
@@ -58,12 +59,12 @@
     }
 
     .card h2 {
-      font-size: 1.3em;
+      font-size: 1.2em;
       margin: 10px;
     }
 
     .card p {
-      font-size: 0.95em;
+      font-size: 0.9em;
       margin: 0 10px 10px;
       color: #555;
     }
@@ -110,12 +111,26 @@
       font-size: 1.6em;
       margin: 40px 0 10px;
     }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.6em;
+      }
+
+      .card h2 {
+        font-size: 1em;
+      }
+
+      .card p {
+        font-size: 0.85em;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
   <header>
-    <h1>GOOD Game Gather　"GGG" 🕹️</h1>
+    <h1>たくまろのゲームセンター 🕹️</h1>
     <p>お気に入りのゲームを見つけよう！</p>
   </header>
 
@@ -128,7 +143,7 @@
   <main class="container" id="allGamesContainer"></main>
 
   <footer>
-    &copy; 2025 GOOD Game Gather　"GGG" All Rights Reserved.
+    &copy; 2025 たくまろのゲームセンター All Rights Reserved.
   </footer>
 
   <script>
@@ -146,13 +161,6 @@
         description: "「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！",
         link: "games/reaction/",
         image: "https://via.placeholder.com/300x180?text=Reaction"
-      },
-      {
-      id: "target-click",
-      title: "的当てゲーム 🎯",
-      description: "反応速度を競え！5回の平均タイムに挑戦しよう！",
-      link: "games/target-click/",
-      image: "https://via.placeholder.com/300x180?text=Target+Click"
       }
     ];
 
