@@ -28,10 +28,20 @@
             margin-bottom: 1.5rem;
         }
         .game-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
             margin: 1rem 0;
             padding: 1rem;
             background: #f8f9fa;
             border-radius: 8px;
+        }
+        .game-stat {
+            text-align: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .difficulty-selector {
             margin: 1rem 0;
@@ -169,26 +179,64 @@
             0% { transform: translateY(-100vh) rotate(0deg); }
             100% { transform: translateY(100vh) rotate(360deg); }
         }
+        .combo-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: none;
+            animation: comboPulse 0.5s;
+            z-index: 1000;
+        }
+        @keyframes comboPulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        .hint-button {
+            background: #2ecc71;
+        }
+        .hint-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <h1>数字当てゲーム</h1>
         <div class="game-info">
-            <p>1から100までの数字を当ててください！</p>
-            <select class="difficulty-selector" id="difficulty" onchange="changeDifficulty()">
-                <option value="10">初級 (10回)</option>
-                <option value="7">中級 (7回)</option>
-                <option value="5">上級 (5回)</option>
-            </select>
-            <p class="attempts">残りの挑戦回数: <span id="attempts">10</span>回</p>
-            <div class="high-score">ベストスコア: <span id="highScore">-</span>回</div>
+            <div class="game-stat">
+                <p>残りの挑戦回数: <span id="attempts">10</span>回</p>
+            </div>
+            <div class="game-stat">
+                <p>残り時間: <span id="timer">60</span>秒</p>
+            </div>
+            <div class="game-stat">
+                <p>ヒント残り: <span id="hintCount">3</span>回</p>
+            </div>
+            <div class="game-stat">
+                <p>ベストスコア: <span id="highScore">-</span>点</p>
+            </div>
         </div>
+        <select class="difficulty-selector" id="difficulty" onchange="changeDifficulty()">
+            <option value="10">初級 (10回)</option>
+            <option value="7">中級 (7回)</option>
+            <option value="5">上級 (5回)</option>
+        </select>
         <input type="number" id="guessInput" min="1" max="100" placeholder="数字を入力">
         <br>
         <button onclick="checkGuess()">予想する</button>
         <button onclick="resetGame()">新しいゲーム</button>
+        <button id="hintButton" class="hint-button" onclick="useHint()">ヒントを使う</button>
         <div id="message" class="message"></div>
+        <div id="comboMessage" class="combo-message"></div>
         <div class="history-container">
             <h3>予想履歴</h3>
             <div id="history"></div>
@@ -205,12 +253,19 @@
         function initGame() {
             targetNumber = Math.floor(Math.random() * 100) + 1;
             attemptsLeft = maxAttempts;
+            hintCount = 3;
+            combo = 0;
+            lastDifference = 100;
             document.getElementById('attempts').textContent = attemptsLeft;
+            document.getElementById('hintCount').textContent = hintCount;
+            document.getElementById('hintButton').disabled = false;
             document.getElementById('message').textContent = '';
             document.getElementById('guessInput').value = lastGuess;
             document.getElementById('guessInput').disabled = false;
             document.getElementById('history').innerHTML = '';
             document.getElementById('highScore').textContent = highScore;
+            document.getElementById('comboMessage').style.display = 'none';
+            startTimer();
         }
 
         function changeDifficulty() {
@@ -267,6 +322,59 @@
             historyDiv.insertBefore(historyItem, historyDiv.firstChild);
         }
 
+        // 新しい機能: ヒントシステム
+        let hintCount = 3;
+        function useHint() {
+            if (hintCount > 0) {
+                hintCount--;
+                const range = Math.floor((targetNumber - 1) / 10) * 10;
+                const message = `ヒント: 正解は${range + 1}から${range + 10}の間です！`;
+                document.getElementById('message').textContent = message;
+                document.getElementById('hintCount').textContent = hintCount;
+                if (hintCount === 0) {
+                    document.getElementById('hintButton').disabled = true;
+                }
+            }
+        }
+
+        // 新しい機能: タイマー
+        let timer;
+        let timeLeft = 0;
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 60; // 60秒
+            document.getElementById('timer').textContent = timeLeft;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('message').textContent = '😢 時間切れ！';
+                    document.getElementById('guessInput').disabled = true;
+                }
+            }, 1000);
+        }
+
+        // 新しい機能: コンボシステム
+        let combo = 0;
+        let lastDifference = 100;
+        function updateCombo(currentDifference) {
+            if (currentDifference < lastDifference) {
+                combo++;
+                if (combo >= 3) {
+                    document.getElementById('comboMessage').textContent = `${combo}コンボ！`;
+                    document.getElementById('comboMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('comboMessage').style.display = 'none';
+                    }, 1000);
+                }
+            } else {
+                combo = 0;
+                document.getElementById('comboMessage').style.display = 'none';
+            }
+            lastDifference = currentDifference;
+        }
+
         function checkGuess() {
             const guessInput = document.getElementById('guessInput');
             const guess = parseInt(guessInput.value);
@@ -286,28 +394,34 @@
             const hintMessage = getHintMessage(difference);
             const isHigher = guess < targetNumber;
 
+            updateCombo(difference);
             addToHistory(guess, isHigher, hintMessage);
 
             if (guess === targetNumber) {
+                clearInterval(timer);
                 const attemptsUsed = maxAttempts - attemptsLeft;
-                messageDiv.textContent = `🎉 正解です！${attemptsUsed}回で当てました！`;
+                const timeBonus = Math.floor(timeLeft / 10); // 時間ボーナス
+                const comboBonus = combo * 2; // コンボボーナス
+                const totalScore = attemptsUsed + timeBonus + comboBonus;
+                
+                messageDiv.innerHTML = `🎉 正解です！<br>試行回数: ${attemptsUsed}回<br>時間ボーナス: ${timeBonus}点<br>コンボボーナス: ${comboBonus}点<br>合計スコア: ${totalScore}点`;
                 messageDiv.className = 'message success';
                 guessInput.disabled = true;
                 
-                if (highScore === '-' || attemptsUsed < parseInt(highScore)) {
-                    highScore = attemptsUsed;
+                if (highScore === '-' || totalScore < parseInt(highScore)) {
+                    highScore = totalScore;
                     localStorage.setItem('highScore', highScore);
                     document.getElementById('highScore').textContent = highScore;
                 }
                 
                 createConfetti();
             } else if (attemptsLeft === 0) {
+                clearInterval(timer);
                 messageDiv.textContent = `😢 ゲームオーバー！正解は${targetNumber}でした。`;
                 messageDiv.className = 'message error';
                 guessInput.disabled = true;
             } else {
-                const direction = isHigher ? '⬆️ もっと大きい数字です' : '⬇️ もっと小さい数字です';
-                messageDiv.innerHTML = `${direction}<br><span class="${isHigher ? 'direction-up' : 'direction-down'}">${hintMessage}</span>`;
+                messageDiv.innerHTML = `<span class="${isHigher ? 'direction-up' : 'direction-down'}">${hintMessage}</span>`;
                 messageDiv.className = 'message';
             }
 

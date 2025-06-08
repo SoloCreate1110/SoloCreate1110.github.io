@@ -1,5 +1,191 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# ゲームUI要件
+
+## 共通UIコンポーネント
+
+### 画面右上の要素
+
+#### 1. お気に入りボタン
+- 位置: 画面右上
+- 表示: 星マーク（☆）
+- 状態:
+  - 通常時: グレー（#95a5a6）
+  - お気に入り時: 黄色（#f1c40f）
+- 機能:
+  - クリックでお気に入り登録/解除
+  - トップ画面のお気に入り一覧と連動
+  - 状態はローカルストレージに保存
+- 実装例:
+```html
+<button id="favoriteBtn" class="favorite-btn" aria-label="お気に入りに追加">
+  <span class="star">☆</span>
+</button>
+```
+```css
+.favorite-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  z-index: 1000;
+}
+
+.favorite-btn.active .star {
+  color: #f1c40f;
+}
+```
+
+#### 2. サウンドトグルボタン
+- 位置: お気に入りボタンの左
+- 表示: スピーカーアイコン（🔊/🔇）
+- 状態:
+  - ON: スピーカーアイコン（🔊）
+  - OFF: ミュートアイコン（🔇）
+- 機能:
+  - クリックでサウンドON/OFF切り替え
+  - 状態はローカルストレージに保存
+  - ゲーム内の全サウンドに影響
+- 実装例:
+```html
+<button id="soundToggle" class="sound-toggle" aria-label="サウンド切り替え">
+  <span class="sound-icon">🔊</span>
+</button>
+```
+```css
+.sound-toggle {
+  position: fixed;
+  top: 20px;
+  right: 60px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  z-index: 1000;
+}
+```
+
+### 画面下部の要素
+
+#### 1. 共有ボタン
+- 位置: 画面下部中央
+- 表示: X（旧Twitter）のロゴ
+- 機能:
+  - クリックでXに共有
+  - ゲームのURLとタイトルを含む
+  - ハッシュタグを自動付与
+- 実装例:
+```html
+<button id="shareBtn" class="share-btn" aria-label="Xで共有">
+  <img src="/assets/x-logo.svg" alt="Xで共有" width="24" height="24">
+</button>
+```
+```css
+.share-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+```
+
+#### 2. トップ画面戻るボタン
+- 位置: 画面下部左
+- 表示: ホームアイコン（🏠）
+- 機能:
+  - クリックでトップ画面に戻る
+  - 確認ダイアログ表示（ゲーム中の場合）
+- 実装例:
+```html
+<button id="homeBtn" class="home-btn" aria-label="トップ画面に戻る">
+  <span class="home-icon">🏠</span>
+</button>
+```
+```css
+.home-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  z-index: 1000;
+}
+```
+
+## 実装要件
+
+### 1. 共通の実装ルール
+- すべてのゲームで統一されたデザイン
+- レスポンシブ対応
+- アクセシビリティ対応
+- タッチデバイス対応
+
+### 2. 状態管理
+- お気に入り状態の永続化
+- サウンド設定の永続化
+- ゲーム状態の適切な管理
+
+### 3. イベント処理
+- クリック/タップイベントの適切な処理
+- キーボードショートカットのサポート
+- タッチジェスチャーのサポート
+
+### 4. エラー処理
+- ネットワークエラー時の処理
+- ローカルストレージエラー時の処理
+- 共有機能エラー時の処理
+
+## テスト項目
+
+### 1. UIテスト
+- 各ボタンの表示確認
+- クリック/タップの動作確認
+- レスポンシブ対応の確認
+- アクセシビリティの確認
+
+### 2. 機能テスト
+- お気に入り登録/解除
+- サウンドON/OFF切り替え
+- 共有機能
+- トップ画面への遷移
+
+### 3. 状態管理テスト
+- ローカルストレージの保存/読み込み
+- 状態の永続化
+- エラー時の動作
+
+## 注意事項
+
+### 1. パフォーマンス
+- アイコンの最適化
+- イベントリスナーの適切な管理
+- アニメーションの最適化
+
+### 2. セキュリティ
+- X共有時のURLエンコード
+- ローカルストレージの適切な使用
+- ユーザー入力の適切な処理
+
+### 3. アクセシビリティ
+- 適切なaria属性の使用
+- キーボード操作のサポート
+- スクリーンリーダー対応
+
