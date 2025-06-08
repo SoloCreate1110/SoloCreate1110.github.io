@@ -112,6 +112,24 @@
         .history-hint {
             color: #666;
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .direction-up {
+            color: #e74c3c;
+        }
+        .direction-down {
+            color: #3498db;
+        }
+        .hint-very-close {
+            color: #e67e22;
+        }
+        .hint-close {
+            color: #f1c40f;
+        }
+        .hint-far {
+            color: #95a5a6;
         }
         .close {
             color: #e74c3c;
@@ -220,7 +238,7 @@
             }
         }
 
-        function addToHistory(guess, hint) {
+        function addToHistory(guess, isHigher, hintMessage) {
             const historyDiv = document.getElementById('history');
             const historyItem = document.createElement('div');
             historyItem.className = 'history-item';
@@ -231,7 +249,18 @@
             
             const hintSpan = document.createElement('span');
             hintSpan.className = 'history-hint';
-            hintSpan.textContent = hint;
+            
+            const directionSpan = document.createElement('span');
+            directionSpan.className = isHigher ? 'direction-up' : 'direction-down';
+            directionSpan.textContent = isHigher ? '⬆️' : '⬇️';
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.className = 'hint-' + (hintMessage.includes('すごく') || hintMessage.includes('かなり') ? 'very-close' : 
+                                              hintMessage.includes('そこそこ') ? 'close' : 'far');
+            messageSpan.textContent = hintMessage;
+            
+            hintSpan.appendChild(directionSpan);
+            hintSpan.appendChild(messageSpan);
             
             historyItem.appendChild(numberSpan);
             historyItem.appendChild(hintSpan);
@@ -255,13 +284,13 @@
 
             const difference = Math.abs(targetNumber - guess);
             const hintMessage = getHintMessage(difference);
-            const direction = guess < targetNumber ? 'もっと大きい' : 'もっと小さい';
+            const isHigher = guess < targetNumber;
 
-            addToHistory(guess, `${direction} (${hintMessage})`);
+            addToHistory(guess, isHigher, hintMessage);
 
             if (guess === targetNumber) {
                 const attemptsUsed = maxAttempts - attemptsLeft;
-                messageDiv.textContent = `正解です！${attemptsUsed}回で当てました！`;
+                messageDiv.textContent = `🎉 正解です！${attemptsUsed}回で当てました！`;
                 messageDiv.className = 'message success';
                 guessInput.disabled = true;
                 
@@ -273,11 +302,12 @@
                 
                 createConfetti();
             } else if (attemptsLeft === 0) {
-                messageDiv.textContent = `ゲームオーバー！正解は${targetNumber}でした。`;
+                messageDiv.textContent = `😢 ゲームオーバー！正解は${targetNumber}でした。`;
                 messageDiv.className = 'message error';
                 guessInput.disabled = true;
             } else {
-                messageDiv.textContent = `${direction}数字です！(${hintMessage})`;
+                const direction = isHigher ? '⬆️ もっと大きい数字です' : '⬇️ もっと小さい数字です';
+                messageDiv.innerHTML = `${direction}<br><span class="${isHigher ? 'direction-up' : 'direction-down'}">${hintMessage}</span>`;
                 messageDiv.className = 'message';
             }
 
