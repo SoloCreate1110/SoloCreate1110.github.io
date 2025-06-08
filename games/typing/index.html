@@ -10,6 +10,7 @@
       background-color: #f5f5f5;
       margin: 0; padding: 20px;
       text-align: center;
+      transition: background-color 0.3s, color 0.3s;
     }
     h1 { margin-bottom: 10px; }
     .sentence {
@@ -43,6 +44,7 @@
   </style>
 </head>
 <body>
+  <audio id="typeSound" src="https://soundeffect-lab.info/sound/button/mp3/type01.mp3"></audio>
   <div class="top-bar">
     <button id="favoriteBtn">★</button>
     <button id="soundToggle">🔊</button>
@@ -67,10 +69,13 @@
     ];
     let current = 0;
     let score = 0;
+    let soundEnabled = true;
+    let darkMode = false;
 
     const sentenceEl = document.getElementById('sentence');
     const inputEl = document.getElementById('input');
     const scoreEl = document.getElementById('score');
+    const typeSound = document.getElementById('typeSound');
 
     function updateSentence() {
       sentenceEl.textContent = sentences[current];
@@ -83,6 +88,7 @@
         if (inputEl.value === sentences[current]) {
           score++;
           scoreEl.textContent = `スコア: ${score}`;
+          if (soundEnabled) typeSound.play();
         }
         current = (current + 1) % sentences.length;
         updateSentence();
@@ -121,8 +127,19 @@
     }
     updateFavoriteIcon();
 
-    document.getElementById('soundToggle').onclick = () => alert('サウンド設定は現在未対応');
-    document.getElementById('darkModeToggle').onclick = () => alert('ダークモードは現在未対応');
+    // サウンド切り替え
+    document.getElementById('soundToggle').onclick = () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔈';
+    };
+
+    // ダークモード切り替え
+    document.getElementById('darkModeToggle').onclick = () => {
+      darkMode = !darkMode;
+      document.body.style.backgroundColor = darkMode ? '#1e1e1e' : '#f5f5f5';
+      document.body.style.color = darkMode ? 'white' : 'black';
+      document.getElementById('darkModeToggle').textContent = darkMode ? '☀️' : '🌙';
+    };
 
     updateSentence();
   </script>
