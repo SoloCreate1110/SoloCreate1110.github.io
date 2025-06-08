@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -8,51 +7,56 @@
     body {
       font-family: sans-serif;
       text-align: center;
-      padding: 30px;
+      padding: 40px;
       background: #f0f8ff;
+      position: relative;
     }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 10px;
-    }
-
     button {
       font-size: 20px;
       margin: 10px;
       padding: 10px 20px;
-      cursor: pointer;
     }
-
-    #cpuHandDisplay {
-      font-size: 80px;
-      margin: 40px 0 10px;
+    #cpu-hand {
+      font-size: 100px;
+      margin: 30px 0 10px;
     }
-
-    #result, #score, #streak {
-      font-size: 22px;
-      color: #333;
+    #result {
+      font-size: 24px;
       margin: 10px 0;
     }
-
-    .top-buttons {
+    .counter {
       margin-top: 20px;
-    }
-
-    .top-buttons button {
       font-size: 16px;
-      margin: 5px;
-      padding: 6px 12px;
     }
-
-    .favorite-btn.favorited {
+    .top-buttons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .top-buttons button {
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .favorited {
       color: gold;
+    }
+    .back-button {
+      margin-top: 40px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
+  <div class="top-buttons">
+    <button id="favoriteBtn">★</button>
+  </div>
+
   <h1>じゃんけんゲーム</h1>
   <p>手を選んでください！</p>
+  <div id="cpu-hand">❓</div>
+  <h2 id="result">結果がここに表示されます</h2>
 
   <div>
     <button onclick="play('グー')">グー ✊</button>
@@ -60,87 +64,108 @@
     <button onclick="play('パー')">パー 🖐</button>
   </div>
 
-  <div id="cpuHandDisplay">❓</div>
-  <div id="result">結果がここに表示されます</div>
-  <div id="score">勝ち: 0 | 負け: 0 | あいこ: 0</div>
-  <div id="streak">連勝記録: 0</div>
-
-  <div class="top-buttons">
-    <button id="favoriteBtn" onclick="toggleFavorite()">★ お気に入り</button>
-    <button onclick="location.href='../../index.html'">トップに戻る</button>
+  <div class="counter">
+    勝ち: <span id="winCount">0</span> / 負け: <span id="loseCount">0</span> / あいこ: <span id="drawCount">0</span><br>
+    連勝記録: <span id="streak">0</span>
   </div>
 
-  <audio id="sound-win" src="https://www.soundjay.com/human/sounds/applause-8.mp3"></audio>
-  <audio id="sound-lose" src="https://www.soundjay.com/button/beep-07.wav"></audio>
-  <audio id="sound-draw" src="https://www.soundjay.com/button/beep-10.wav"></audio>
+  <button class="back-button" onclick="location.href='../../index.html'">トップに戻る</button>
+
+  <audio id="winSound" src="https://soundeffect-lab.info/sound/voice/mp3/girl1-yorokobi1.mp3" preload="auto"></audio>
+  <audio id="loseSound" src="https://soundeffect-lab.info/sound/voice/mp3/girl1-shock1.mp3" preload="auto"></audio>
+  <audio id="drawSound" src="https://soundeffect-lab.info/sound/voice/mp3/decision37.mp3" preload="auto"></audio>
 
   <script>
     const hands = ['グー', 'チョキ', 'パー'];
     const emojis = { 'グー': '✊', 'チョキ': '✌', 'パー': '🖐' };
+    const cpuHandElem = document.getElementById('cpu-hand');
+    const resultElem = document.getElementById('result');
+    const winElem = document.getElementById('winCount');
+    const loseElem = document.getElementById('loseCount');
+    const drawElem = document.getElementById('drawCount');
+    const streakElem = document.getElementById('streak');
+    const favoriteBtn = document.getElementById('favoriteBtn');
+
     let winCount = 0, loseCount = 0, drawCount = 0, streak = 0;
+    let intervalId;
+
+    function startCpuThinking() {
+      intervalId = setInterval(() => {
+        const random = hands[Math.floor(Math.random() * 3)];
+        cpuHandElem.textContent = emojis[random];
+      }, 100);
+    }
+
+    function stopCpuThinking() {
+      clearInterval(intervalId);
+    }
+
+    startCpuThinking();
 
     function play(playerHand) {
-      let display = document.getElementById('cpuHandDisplay');
-      let step = 0;
-      const shuffle = setInterval(() => {
-        display.innerText = emojis[hands[step % 3]];
-        step++;
-      }, 100);
+      stopCpuThinking();
+      const cpuHand = hands[Math.floor(Math.random() * 3)];
+      cpuHandElem.textContent = emojis[cpuHand];
 
-      setTimeout(() => {
-        clearInterval(shuffle);
-        const cpuHand = hands[Math.floor(Math.random() * 3)];
-        display.innerText = `相手：${emojis[cpuHand]}`;
+      let result = '';
+      let sound;
+      if (playerHand === cpuHand) {
+        result = 'あいこ！';
+        drawCount++;
+        sound = 'drawSound';
+        streak = 0;
+      } else if (
+        (playerHand === 'グー' && cpuHand === 'チョキ') ||
+        (playerHand === 'チョキ' && cpuHand === 'パー') ||
+        (playerHand === 'パー' && cpuHand === 'グー')
+      ) {
+        result = 'あなたの勝ち！';
+        winCount++;
+        streak++;
+        sound = 'winSound';
+      } else {
+        result = 'あなたの負け！';
+        loseCount++;
+        streak = 0;
+        sound = 'loseSound';
+      }
+      resultElem.innerText = `あなた：${playerHand} ／ 相手：${cpuHand} → ${result}`;
+      winElem.textContent = winCount;
+      loseElem.textContent = loseCount;
+      drawElem.textContent = drawCount;
+      streakElem.textContent = streak;
 
-        let outcome = '';
-        if (playerHand === cpuHand) {
-          outcome = 'あいこ！';
-          drawCount++;
-          streak = 0;
-          document.getElementById('sound-draw').play();
-        } else if (
-          (playerHand === 'グー' && cpuHand === 'チョキ') ||
-          (playerHand === 'チョキ' && cpuHand === 'パー') ||
-          (playerHand === 'パー' && cpuHand === 'グー')
-        ) {
-          outcome = 'あなたの勝ち！';
-          winCount++;
-          streak++;
-          document.getElementById('sound-win').play();
-        } else {
-          outcome = 'あなたの負け！';
-          loseCount++;
-          streak = 0;
-          document.getElementById('sound-lose').play();
-        }
+      const audio = document.getElementById(sound);
+      audio.volume = 0.2;
+      audio.play();
 
-        document.getElementById('result').innerText = 
-          `あなた：${playerHand} ／ 相手：${cpuHand} → ${outcome}`;
-        document.getElementById('score').innerText = 
-          `勝ち: ${winCount} | 負け: ${loseCount} | あいこ: ${drawCount}`;
-        document.getElementById('streak').innerText =
-          `連勝記録: ${streak}`;
-      }, 1000);
+      setTimeout(startCpuThinking, 1000);
+    }
+
+    // お気に入りボタン連携
+    const gameId = "janken";
+    function getFavorites() {
+      return JSON.parse(localStorage.getItem("favorites") || "[]");
+    }
+
+    function setFavoriteUI(isFav) {
+      favoriteBtn.classList.toggle("favorited", isFav);
     }
 
     function toggleFavorite() {
-      const key = 'favorite-janken';
-      const btn = document.getElementById('favoriteBtn');
-      if (localStorage.getItem(key)) {
-        localStorage.removeItem(key);
-        btn.classList.remove('favorited');
+      let favs = getFavorites();
+      if (favs.includes(gameId)) {
+        favs = favs.filter(f => f !== gameId);
+        setFavoriteUI(false);
       } else {
-        localStorage.setItem(key, 'true');
-        btn.classList.add('favorited');
+        favs.push(gameId);
+        setFavoriteUI(true);
       }
+      localStorage.setItem("favorites", JSON.stringify(favs));
     }
 
-    window.onload = function () {
-      const btn = document.getElementById('favoriteBtn');
-      if (localStorage.getItem('favorite-janken')) {
-        btn.classList.add('favorited');
-      }
-    };
+    favoriteBtn.onclick = toggleFavorite;
+    setFavoriteUI(getFavorites().includes(gameId));
   </script>
 </body>
 </html>
