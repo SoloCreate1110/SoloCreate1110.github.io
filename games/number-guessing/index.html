@@ -20,7 +20,7 @@
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
         }
         h1 {
@@ -32,6 +32,13 @@
             padding: 1rem;
             background: #f8f9fa;
             border-radius: 8px;
+        }
+        .difficulty-selector {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 2px solid #ddd;
         }
         input {
             padding: 0.5rem;
@@ -50,27 +57,99 @@
             font-size: 1rem;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            margin: 0.5rem;
         }
         button:hover {
             background: #2980b9;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
         }
         .message {
             margin: 1rem 0;
             padding: 0.5rem;
             border-radius: 5px;
+            transition: all 0.3s;
         }
         .success {
             background: #d4edda;
             color: #155724;
+            animation: successPulse 0.5s;
         }
         .error {
             background: #f8d7da;
             color: #721c24;
+            animation: errorShake 0.5s;
         }
         .attempts {
             font-size: 0.9rem;
             color: #666;
+        }
+        .history-container {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history-item {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 5px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-number {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .history-hint {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .close {
+            color: #e74c3c;
+        }
+        .very-close {
+            color: #f1c40f;
+        }
+        .far {
+            color: #95a5a6;
+        }
+        .high-score {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background: #e8f4f8;
+            border-radius: 5px;
+            color: #2980b9;
+            font-weight: bold;
+        }
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: confetti-fall 3s linear infinite;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
         }
     </style>
 </head>
@@ -79,27 +158,84 @@
         <h1>数字当てゲーム</h1>
         <div class="game-info">
             <p>1から100までの数字を当ててください！</p>
+            <select class="difficulty-selector" id="difficulty" onchange="changeDifficulty()">
+                <option value="10">初級 (10回)</option>
+                <option value="7">中級 (7回)</option>
+                <option value="5">上級 (5回)</option>
+            </select>
             <p class="attempts">残りの挑戦回数: <span id="attempts">10</span>回</p>
+            <div class="high-score">ベストスコア: <span id="highScore">-</span>回</div>
         </div>
         <input type="number" id="guessInput" min="1" max="100" placeholder="数字を入力">
         <br>
         <button onclick="checkGuess()">予想する</button>
         <button onclick="resetGame()">新しいゲーム</button>
         <div id="message" class="message"></div>
+        <div class="history-container">
+            <h3>予想履歴</h3>
+            <div id="history"></div>
+        </div>
     </div>
 
     <script>
         let targetNumber;
         let attemptsLeft;
-        const maxAttempts = 10;
+        let maxAttempts = 10;
+        let highScore = localStorage.getItem('highScore') || '-';
+        let lastGuess = '';
 
         function initGame() {
             targetNumber = Math.floor(Math.random() * 100) + 1;
             attemptsLeft = maxAttempts;
             document.getElementById('attempts').textContent = attemptsLeft;
             document.getElementById('message').textContent = '';
-            document.getElementById('guessInput').value = '';
+            document.getElementById('guessInput').value = lastGuess;
             document.getElementById('guessInput').disabled = false;
+            document.getElementById('history').innerHTML = '';
+            document.getElementById('highScore').textContent = highScore;
+        }
+
+        function changeDifficulty() {
+            maxAttempts = parseInt(document.getElementById('difficulty').value);
+            resetGame();
+        }
+
+        function getHintMessage(difference) {
+            if (difference <= 5) return 'すごく近い！';
+            if (difference <= 10) return 'かなり近い！';
+            if (difference <= 20) return 'そこそこ近い';
+            if (difference <= 30) return 'まだまだ遠い';
+            return '全然違う！';
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function addToHistory(guess, hint) {
+            const historyDiv = document.getElementById('history');
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'history-number';
+            numberSpan.textContent = guess;
+            
+            const hintSpan = document.createElement('span');
+            hintSpan.className = 'history-hint';
+            hintSpan.textContent = hint;
+            
+            historyItem.appendChild(numberSpan);
+            historyItem.appendChild(hintSpan);
+            historyDiv.insertBefore(historyItem, historyDiv.firstChild);
         }
 
         function checkGuess() {
@@ -113,23 +249,38 @@
                 return;
             }
 
+            lastGuess = guess;
             attemptsLeft--;
             document.getElementById('attempts').textContent = attemptsLeft;
 
+            const difference = Math.abs(targetNumber - guess);
+            const hintMessage = getHintMessage(difference);
+            const direction = guess < targetNumber ? 'もっと大きい' : 'もっと小さい';
+
+            addToHistory(guess, `${direction} (${hintMessage})`);
+
             if (guess === targetNumber) {
-                messageDiv.textContent = `正解です！${maxAttempts - attemptsLeft}回で当てました！`;
+                const attemptsUsed = maxAttempts - attemptsLeft;
+                messageDiv.textContent = `正解です！${attemptsUsed}回で当てました！`;
                 messageDiv.className = 'message success';
                 guessInput.disabled = true;
+                
+                if (highScore === '-' || attemptsUsed < parseInt(highScore)) {
+                    highScore = attemptsUsed;
+                    localStorage.setItem('highScore', highScore);
+                    document.getElementById('highScore').textContent = highScore;
+                }
+                
+                createConfetti();
             } else if (attemptsLeft === 0) {
                 messageDiv.textContent = `ゲームオーバー！正解は${targetNumber}でした。`;
                 messageDiv.className = 'message error';
                 guessInput.disabled = true;
             } else {
-                messageDiv.textContent = guess < targetNumber ? 'もっと大きい数字です！' : 'もっと小さい数字です！';
+                messageDiv.textContent = `${direction}数字です！(${hintMessage})`;
                 messageDiv.className = 'message';
             }
 
-            guessInput.value = '';
             guessInput.focus();
         }
 
