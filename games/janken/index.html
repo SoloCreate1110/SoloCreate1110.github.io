@@ -4,38 +4,72 @@
   <meta charset="UTF-8">
   <title>じゃんけんゲーム</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 50px; }
-    button { font-size: 20px; margin: 10px; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #f0f8ff;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    button {
+      font-size: 20px;
+      margin: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    #cpuHandDisplay {
+      font-size: 80px;
+      margin: 40px 0 10px;
+    }
+
+    #result {
+      font-size: 24px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
   <h1>じゃんけんゲーム</h1>
-  <p>ボタンを選んでください！</p>
+  <p>手を選んでください！</p>
+
   <div>
     <button onclick="play('グー')">グー ✊</button>
     <button onclick="play('チョキ')">チョキ ✌</button>
     <button onclick="play('パー')">パー 🖐</button>
   </div>
-  <h2 id="result">結果がここに表示されます</h2>
+
+  <div id="cpuHandDisplay">❓</div>
+  <div id="result">結果がここに表示されます</div>
 
   <script>
     function play(playerHand) {
       const hands = ['グー', 'チョキ', 'パー'];
+      const emojis = { 'グー': '✊', 'チョキ': '✌', 'パー': '🖐' };
       const cpuHand = hands[Math.floor(Math.random() * 3)];
-      let result = '';
+
+      // 勝敗判定
+      let outcome = '';
       if (playerHand === cpuHand) {
-        result = 'あいこ！';
+        outcome = 'あいこ！';
       } else if (
         (playerHand === 'グー' && cpuHand === 'チョキ') ||
         (playerHand === 'チョキ' && cpuHand === 'パー') ||
         (playerHand === 'パー' && cpuHand === 'グー')
       ) {
-        result = 'あなたの勝ち！';
+        outcome = 'あなたの勝ち！';
       } else {
-        result = 'あなたの負け！';
+        outcome = 'あなたの負け！';
       }
-      document.getElementById('result').innerText =
-        `あなた：${playerHand} ／ 相手：${cpuHand} → ${result}`;
+
+      // 表示更新
+      document.getElementById('cpuHandDisplay').innerText = `相手：${emojis[cpuHand]}`;
+      document.getElementById('result').innerText = `あなた：${playerHand} ／ 相手：${cpuHand} → ${outcome}`;
     }
   </script>
 </body>
