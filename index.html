@@ -4,131 +4,371 @@
   <meta charset="UTF-8">
   <title>Solo Create Game Gather</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Baloo 2', cursive;
-      background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
       padding: 0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background elements */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(150, 206, 180, 0.1) 0%, transparent 50%);
+      z-index: -1;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(2deg); }
+    }
+
+    /* Floating game icons */
+    .floating-icons {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .floating-icon {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0.1;
+      animation: floatIcon 15s linear infinite;
+    }
+
+    @keyframes floatIcon {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.1;
+      }
+      90% {
+        opacity: 0.1;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
     }
 
     header {
-      background: #ff6f61;
+      background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
       color: white;
-      padding: 20px 0;
+      padding: 30px 0;
       text-align: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shine 3s ease-in-out infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+      100% { transform: translateX(200%) translateY(200%) rotate(45deg); }
     }
 
     h1 {
       margin: 0;
-      font-size: 2.2em;
+      font-size: 2.8em;
+      font-family: 'Fredoka One', cursive;
+      font-weight: 400;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 1;
     }
 
-    p {
-      margin: 5px 0 0;
+    header p {
+      margin: 10px 0 0;
+      font-size: 1.2em;
+      font-weight: 600;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
     }
 
     .container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      max-width: 1000px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      padding: 30px;
+      max-width: 1200px;
       margin: auto;
     }
 
     .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+      border-radius: 20px;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.05);
       overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7);
+      background-size: 200% 100%;
+      animation: gradientShift 3s ease-in-out infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
 
     .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 8px 16px rgba(0, 0, 0, 0.1);
     }
 
     .card img {
       width: 100%;
-      height: auto;
+      height: 200px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover img {
+      transform: scale(1.05);
+    }
+
+    .card-content {
+      padding: 20px;
     }
 
     .card h2 {
-      font-size: 1.2em;
-      margin: 10px;
+      font-size: 1.4em;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .card p {
-      font-size: 0.9em;
-      margin: 0 10px 10px;
+      font-size: 0.95em;
+      margin: 0 0 20px 0;
       color: #555;
+      line-height: 1.6;
+      font-weight: 400;
     }
 
     .card a {
-      display: block;
-      margin: 10px auto 20px;
-      padding: 8px 16px;
-      background: #ff6f61;
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
       color: white;
       text-decoration: none;
-      border-radius: 6px;
-      width: 80%;
+      border-radius: 25px;
+      font-weight: 600;
       text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
     }
 
     .card a:hover {
-      background: #e64a45;
+      background: linear-gradient(135deg, #FF5252, #FF7474);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
     }
 
     .favorite-btn {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.9);
       border: none;
-      font-size: 24px;
+      font-size: 28px;
       cursor: pointer;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .favorite-btn:hover {
+      transform: scale(1.1) rotate(15deg);
+      background: rgba(255, 255, 255, 1);
     }
 
     .favorite-btn.favorited {
-      color: gold;
+      color: #FFD700;
+      background: linear-gradient(135deg, #FFF8DC, #FFFFE0);
+      animation: pulse 2s ease-in-out infinite;
     }
 
-    footer {
-      text-align: center;
-      font-size: 0.8em;
-      padding: 20px;
-      color: #777;
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     .section-title {
       text-align: center;
-      font-size: 1.6em;
-      margin: 40px 0 10px;
+      font-size: 2.2em;
+      font-family: 'Fredoka One', cursive;
+      font-weight: 400;
+      margin: 50px 0 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    @media (max-width: 480px) {
+    #favoritesSection {
+      transition: all 0.5s ease;
+    }
+
+    #favoritesSection.hidden {
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9em;
+      padding: 40px 20px;
+      color: rgba(255, 255, 255, 0.8);
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      margin-top: 50px;
+      font-weight: 600;
+    }
+
+    /* Enhanced drag and drop styling */
+    .sortable-ghost {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .sortable-drag {
+      transform: rotate(5deg);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 768px) {
       header h1 {
-        font-size: 1.6em;
+        font-size: 2.2em;
       }
 
-      .card h2 {
+      header p {
         font-size: 1em;
       }
 
+      .container {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 20px;
+      }
+
+      .card h2 {
+        font-size: 1.2em;
+      }
+
       .card p {
-        font-size: 0.85em;
+        font-size: 0.9em;
+      }
+
+      .section-title {
+        font-size: 1.8em;
+        margin: 30px 0 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 20px 0;
+      }
+
+      header h1 {
+        font-size: 1.8em;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
+      .card-content {
+        padding: 15px;
+      }
+    }
+
+    /* Loading animation */
+    .loading {
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
+  <div class="floating-icons"></div>
+
   <header>
     <h1>たくまろのゲームセンター 🕹️</h1>
     <p>お気に入りのゲームを見つけよう！</p>
@@ -151,28 +391,49 @@
       {
         id: "janken",
         title: "じゃんけんゲーム ✊✋✌️",
-        description: "手を選んで、勝てるかな？カンタンだけど奥が深い！",
+        description: "手を選んで、勝てるかな？カンタンだけど奥が深い！シンプルなルールで誰でも楽しめる定番ゲーム。",
         link: "games/janken/",
-        image: "https://via.placeholder.com/300x180?text=Janken"
+        image: "https://images.pexels.com/photos/3761508/pexels-photo-3761508.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
       },
       {
         id: "reaction",
         title: "反射神経テスト ⚡",
-        description: "「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！",
+        description: "「今だ！」の瞬間を見逃すな！君の最速記録を目指せ！集中力と反応速度が試されるスリリングなゲーム。",
         link: "games/reaction/",
-        image: "https://via.placeholder.com/300x180?text=Reaction"
+        image: "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
       },
       {
         id: "target-click",
         title: "的当てゲーム 🎯",
-        description: "すばやく正確にクリック！反応速度と集中力を試そう！",
+        description: "すばやく正確にクリック！反応速度と集中力を試そう！動く標的を狙い撃ちして高スコアを目指せ。",
         link: "games/target/",
-        image: "https://via.placeholder.com/300x180?text=Target"
+        image: "https://images.pexels.com/photos/226583/pexels-photo-226583.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
       }
     ];
 
-    const favoritesSection = document.getElementById('favoritesContainer');
+    const favoritesSection = document.getElementById('favoritesSection');
+    const favoritesContainer = document.getElementById('favoritesContainer');
     const allGamesSection = document.getElementById('allGamesContainer');
+
+    // Create floating background icons
+    function createFloatingIcons() {
+      const icons = ['🎮', '🕹️', '🎯', '⚡', '✊', '✋', '✌️', '🎲', '🏆', '⭐'];
+      const container = document.querySelector('.floating-icons');
+      
+      setInterval(() => {
+        const icon = document.createElement('div');
+        icon.className = 'floating-icon';
+        icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+        icon.style.left = Math.random() * 100 + '%';
+        icon.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        container.appendChild(icon);
+
+        // Remove icon after animation
+        setTimeout(() => {
+          icon.remove();
+        }, 20000);
+      }, 3000);
+    }
 
     function getFavorites() {
       return JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -191,60 +452,84 @@
 
     function createCard(game, isFavorite) {
       const card = document.createElement('div');
-      card.className = 'card';
+      card.className = 'card loading';
 
       const star = document.createElement('button');
       star.className = 'favorite-btn' + (isFavorite ? ' favorited' : '');
-      star.innerText = '★';
-      star.onclick = () => toggleFavorite(game.id);
+      star.innerHTML = '★';
+      star.onclick = (e) => {
+        e.preventDefault();
+        toggleFavorite(game.id);
+      };
       card.appendChild(star);
 
       const img = document.createElement('img');
       img.src = game.image;
       img.alt = game.title;
+      img.onerror = function() {
+        this.src = `https://via.placeholder.com/300x200/667eea/ffffff?text=${encodeURIComponent(game.title)}`;
+      };
       card.appendChild(img);
 
+      const content = document.createElement('div');
+      content.className = 'card-content';
+
       const h2 = document.createElement('h2');
-      h2.innerText = game.title;
-      card.appendChild(h2);
+      h2.textContent = game.title;
+      content.appendChild(h2);
 
       const p = document.createElement('p');
-      p.innerText = game.description;
-      card.appendChild(p);
+      p.textContent = game.description;
+      content.appendChild(p);
 
       const link = document.createElement('a');
       link.href = game.link;
-      link.innerText = 'プレイする';
-      card.appendChild(link);
+      link.textContent = 'プレイする';
+      content.appendChild(link);
+
+      card.appendChild(content);
 
       return card;
     }
 
     function render() {
       const favorites = getFavorites();
-      favoritesSection.innerHTML = '';
+      favoritesContainer.innerHTML = '';
       allGamesSection.innerHTML = '';
 
       const favGames = favorites.map(id => games.find(g => g.id === id)).filter(Boolean);
       const otherGames = games.filter(g => !favorites.includes(g.id));
 
       if (favGames.length === 0) {
-        document.getElementById('favoritesSection').style.display = 'none';
+        favoritesSection.classList.add('hidden');
       } else {
-        document.getElementById('favoritesSection').style.display = 'block';
-        favGames.forEach(g => favoritesSection.appendChild(createCard(g, true)));
+        favoritesSection.classList.remove('hidden');
+        favGames.forEach((g, index) => {
+          const card = createCard(g, true);
+          card.style.animationDelay = index * 0.1 + 's';
+          favoritesContainer.appendChild(card);
+        });
       }
 
-      otherGames.forEach(g => allGamesSection.appendChild(createCard(g, false)));
+      otherGames.forEach((g, index) => {
+        const card = createCard(g, false);
+        card.style.animationDelay = (index + favGames.length) * 0.1 + 's';
+        allGamesSection.appendChild(card);
+      });
     }
 
+    // Initialize
     render();
+    createFloatingIcons();
 
-    new Sortable(favoritesSection, {
-      animation: 150,
+    // Enhanced drag and drop
+    new Sortable(favoritesContainer, {
+      animation: 200,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
       onEnd: function () {
-        const ids = [...favoritesSection.children].map(card => {
-          const title = card.querySelector('h2').innerText;
+        const ids = [...favoritesContainer.children].map(card => {
+          const title = card.querySelector('h2').textContent;
           const game = games.find(g => g.title === title);
           return game?.id;
         }).filter(Boolean);
