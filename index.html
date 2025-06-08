@@ -13,14 +13,10 @@
     body {
       font-family: 'Nunito', sans-serif;
       background: 
-        linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #fd79a8),
-        linear-gradient(135deg, #667eea 0%, #764ba2 100%),
-        radial-gradient(circle at 25% 25%, #ff9a9e 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, #a8edea 0%, transparent 50%);
-      background-size: 400% 400%, 100% 100%, 200% 200%, 200% 200%;
-      animation: 
-        gradientWave 12s ease infinite,
-        backgroundPulse 8s ease-in-out infinite;
+        linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1),
+        linear-gradient(45deg, #667eea, #764ba2);
+      background-size: 400% 400%, 100% 100%;
+      animation: gradientWave 15s ease infinite;
       margin: 0;
       padding: 0;
       min-height: 100vh;
@@ -31,11 +27,6 @@
     @keyframes gradientWave {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
-    }
-
-    @keyframes backgroundPulse {
-      0%, 100% { filter: brightness(1) saturate(1); }
-      50% { filter: brightness(1.1) saturate(1.2); }
     }
 
     /* Animated background particles */
@@ -81,23 +72,21 @@
       height: 100%;
       pointer-events: none;
       z-index: 0;
+      opacity: 0.5;
     }
 
     .floating-icon {
       position: absolute;
-      font-size: 32px;
-      opacity: 0.3;
-      animation: floatIcon 25s linear infinite;
-      text-shadow: 
-        2px 2px 4px rgba(0, 0, 0, 0.3),
-        0 0 10px rgba(255, 255, 255, 0.5);
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+      font-size: 24px;
+      opacity: 0.2;
+      animation: floatIcon 20s linear infinite;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     @keyframes floatIcon {
       0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
-      10% { opacity: 0.4; }
-      90% { opacity: 0.2; }
+      10% { opacity: 0.2; }
+      90% { opacity: 0.1; }
       100% { transform: translateY(-10vh) scale(0.2); opacity: 0; }
     }
 
@@ -1047,7 +1036,7 @@
       const icons = ['🎮', '🕹️', '🎯', '⚡', '🎲', '🏆', '⭐'];
       const container = document.querySelector('.floating-icons');
       let activeIcons = 0;
-      const maxIcons = 5; // 同時に表示するアイコンの最大数
+      const maxIcons = 3; // 同時表示数を減らす
 
       setInterval(() => {
         if (activeIcons < maxIcons) {
@@ -1061,9 +1050,9 @@
           setTimeout(() => {
             icon.remove();
             activeIcons--;
-          }, 15000);
+          }, 20000); // アニメーション時間を延長
         }
-      }, 3000);
+      }, 5000); // 生成間隔を延長
     }
 
     // Create geometric shapes
@@ -1204,7 +1193,26 @@
     function renderGames(games, container, isFavorite) {
       container.innerHTML = '';
       games.forEach((game, index) => {
-        const card = createCard(game, isFavorite);
+        const card = document.createElement('div');
+        card.className = 'card loading';
+        card.innerHTML = `
+          <button class="favorite-btn ${isFavorite ? 'favorited' : ''}" data-game-id="${game.id}">★</button>
+          <img src="${game.image}" alt="${game.title}">
+          <div class="card-content">
+            <h2>${game.title}</h2>
+            <p>${game.description}</p>
+            <a href="${game.link}" class="play-button">プレイする</a>
+          </div>
+        `;
+
+        const favoriteBtn = card.querySelector('.favorite-btn');
+        favoriteBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleFavorite(game.id);
+          applyFilters();
+        });
+
         card.style.animationDelay = `${index * 0.1}s`;
         container.appendChild(card);
       });
@@ -1224,24 +1232,49 @@
     // 初期化
     init();
 
-    // イベントリスナーの最適化
+    // 検索とフィルターの状態管理
+    let currentSearchTerm = '';
+    let currentCategory = 'all';
+
+    function applyFilters() {
+      const searchTerm = currentSearchTerm.toLowerCase();
+      const category = currentCategory;
+
+      const filteredGames = games.filter(game => {
+        const matchesSearch = game.title.toLowerCase().includes(searchTerm) ||
+                             game.description.toLowerCase().includes(searchTerm);
+        const matchesCategory = category === 'all' || game.category === category;
+        return matchesSearch && matchesCategory;
+      });
+
+      const favorites = getFavorites();
+      const favGames = filteredGames.filter(game => favorites.includes(game.id));
+      const otherGames = filteredGames.filter(game => !favorites.includes(game.id));
+
+      favoritesSection.classList.toggle('hidden', favGames.length === 0);
+      renderGames(favGames, favoritesContainer, true);
+      renderGames(otherGames, allGamesSection, false);
+    }
+
+    // イベントリスナーの設定
     function setupEventListeners() {
       const searchInput = document.getElementById('searchInput');
       const searchClear = document.getElementById('searchClear');
       const categoryButtons = document.querySelectorAll('.category-btn');
 
-      // 検索機能の最適化
-      let searchTimeout;
       searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          currentSearchTerm = e.target.value;
-          searchClear.classList.toggle('visible', currentSearchTerm.length > 0);
-          applyFilters();
-        }, 300);
+        currentSearchTerm = e.target.value;
+        searchClear.style.display = currentSearchTerm ? 'block' : 'none';
+        applyFilters();
       });
 
-      // カテゴリフィルターの最適化
+      searchClear.addEventListener('click', () => {
+        searchInput.value = '';
+        currentSearchTerm = '';
+        searchClear.style.display = 'none';
+        applyFilters();
+      });
+
       categoryButtons.forEach(btn => {
         btn.addEventListener('click', function() {
           categoryButtons.forEach(b => b.classList.remove('active'));
@@ -1252,66 +1285,13 @@
       });
     }
 
-    // レンダリングの最適化
-    function render() {
-      const favorites = getFavorites();
-      const favGames = favorites.map(id => games.find(g => g.id === id)).filter(Boolean);
-      const otherGames = games.filter(g => !favorites.includes(g.id));
-
-      // お気に入りセクションの表示制御
-      favoritesSection.classList.toggle('hidden', favGames.length === 0);
-      
-      // カードの作成と表示
-      renderGames(favGames, favoritesContainer, true);
-      renderGames(otherGames, allGamesSection, false);
-    }
-
-    function renderGames(games, container, isFavorite) {
-      container.innerHTML = '';
-      games.forEach((game, index) => {
-        const card = createCard(game, isFavorite);
-        card.style.animationDelay = `${index * 0.1}s`;
-        container.appendChild(card);
-      });
-    }
-
-    // カード作成の最適化
-    function createCard(game, isFavorite) {
-      const card = document.createElement('div');
-      card.className = 'card loading';
-      card.innerHTML = `
-        <button class="favorite-btn ${isFavorite ? 'favorited' : ''}" data-game-id="${game.id}">★</button>
-        <a href="${game.link}" class="game-card">
-          <div class="game-icon">${getGameIcon(game.category)}</div>
-          <h2>${game.title}</h2>
-          <p>${game.description}</p>
-        </a>
-      `;
-
-      // お気に入りボタンのイベント
-      const favoriteBtn = card.querySelector('.favorite-btn');
-      favoriteBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleFavorite(game.id);
-        applyFilters();
-      });
-
-      return card;
-    }
-
-    // カテゴリに応じたアイコンの取得
-    function getGameIcon(category) {
-      const icons = {
-        puzzle: '🧩',
-        action: '⚡',
-        skill: '🎯',
-        brain: '🧠'
-      };
-      return icons[category] || '🎮';
-    }
-
     // 初期化
-    init();
+    function init() {
+      createFloatingIcons();
+      setupEventListeners();
+      render();
+      applyFilters();
+    }
   </script>
 </body>
 </html>
