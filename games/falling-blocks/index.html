@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>落ち物パズル</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      margin: 0;
+    }
+    canvas {
+      background: #111;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #333;
+    }
+    .top-bar {
+      position: absolute; top: 10px; right: 10px;
+      display: flex; gap: 10px; align-items: center;
+    }
+    .top-bar button {
+      font-size: 20px; border: none; background: none; cursor: pointer;
+    }
+    .favorited { color: gold; }
+    .footer {
+      text-align: center; font-size: 14px; color: #666;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button id="favoriteBtn">★</button>
+    <button id="soundToggle">🔊</button>
+    <button id="darkModeToggle">🌙</button>
+  </div>
+
+  <h1>落ち物パズル</h1>
+  <canvas id="gameCanvas" width="240" height="400"></canvas>
+
+  <div class="footer">
+    <p><button onclick="shareToX()">Xで共有</button> ／ <button onclick="goHome()">🏠 ホームに戻る</button></p>
+    <!-- <div id="ads">ここに広告が表示されます</div> -->
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const rows = 20;
+    const cols = 10;
+    const blockSize = 20;
+
+    let board = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+    function drawBoard() {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          ctx.fillStyle = board[r][c] ? 'cyan' : '#222';
+          ctx.fillRect(c * blockSize, r * blockSize, blockSize, blockSize);
+          ctx.strokeStyle = '#111';
+          ctx.strokeRect(c * blockSize, r * blockSize, blockSize, blockSize);
+        }
+      }
+    }
+
+    function dropBlock() {
+      let col = Math.floor(Math.random() * cols);
+      for (let row = 0; row < rows; row++) {
+        if (board[row][col]) {
+          board[row - 1][col] = 1;
+          checkLines();
+          return;
+        }
+      }
+      board[rows - 1][col] = 1;
+      checkLines();
+    }
+
+    function checkLines() {
+      for (let r = rows - 1; r >= 0; r--) {
+        if (board[r].every(cell => cell)) {
+          board.splice(r, 1);
+          board.unshift(Array(cols).fill(0));
+        }
+      }
+    }
+
+    setInterval(() => {
+      dropBlock();
+      drawBoard();
+    }, 1000);
+
+    // お気に入り機能
+    const gameId = 'falling-blocks';
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    function updateFavoriteIcon() {
+      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (favs.includes(gameId)) {
+        favoriteBtn.classList.add('favorited');
+      } else {
+        favoriteBtn.classList.remove('favorited');
+      }
+    }
+    favoriteBtn.onclick = () => {
+      let favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (favs.includes(gameId)) {
+        favs = favs.filter(f => f !== gameId);
+      } else {
+        favs.push(gameId);
+      }
+      localStorage.setItem('favorites', JSON.stringify(favs));
+      updateFavoriteIcon();
+    }
+    updateFavoriteIcon();
+
+    // シェア／ホームボタン
+    function goHome() {
+      window.location.href = '../../index.html';
+    }
+    function shareToX() {
+      const url = encodeURIComponent(location.href);
+      window.open(`https://twitter.com/intent/tweet?text=落ち物パズルで遊んだよ！&url=${url}`, '_blank');
+    }
+
+    // サウンド設定
+    let soundOn = true;
+    document.getElementById('soundToggle').onclick = () => {
+      soundOn = !soundOn;
+      document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔈';
+    }
+
+    // ダークモード
+    let darkMode = false;
+    document.getElementById('darkModeToggle').onclick = () => {
+      darkMode = !darkMode;
+      document.body.style.backgroundColor = darkMode ? '#222' : '#f0f0f0';
+    }
+  </script>
+</body>
+</html>
