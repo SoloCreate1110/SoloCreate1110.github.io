@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,7 +8,7 @@
     body {
       font-family: sans-serif;
       text-align: center;
-      padding: 50px;
+      padding: 30px;
       background: #f0f8ff;
     }
 
@@ -28,9 +29,24 @@
       margin: 40px 0 10px;
     }
 
-    #result {
-      font-size: 24px;
+    #result, #score, #streak {
+      font-size: 22px;
       color: #333;
+      margin: 10px 0;
+    }
+
+    .top-buttons {
+      margin-top: 20px;
+    }
+
+    .top-buttons button {
+      font-size: 16px;
+      margin: 5px;
+      padding: 6px 12px;
+    }
+
+    .favorite-btn.favorited {
+      color: gold;
     }
   </style>
 </head>
@@ -46,31 +62,85 @@
 
   <div id="cpuHandDisplay">❓</div>
   <div id="result">結果がここに表示されます</div>
+  <div id="score">勝ち: 0 | 負け: 0 | あいこ: 0</div>
+  <div id="streak">連勝記録: 0</div>
+
+  <div class="top-buttons">
+    <button id="favoriteBtn" onclick="toggleFavorite()">★ お気に入り</button>
+    <button onclick="location.href='../../index.html'">トップに戻る</button>
+  </div>
+
+  <audio id="sound-win" src="https://www.soundjay.com/human/sounds/applause-8.mp3"></audio>
+  <audio id="sound-lose" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+  <audio id="sound-draw" src="https://www.soundjay.com/button/beep-10.wav"></audio>
 
   <script>
+    const hands = ['グー', 'チョキ', 'パー'];
+    const emojis = { 'グー': '✊', 'チョキ': '✌', 'パー': '🖐' };
+    let winCount = 0, loseCount = 0, drawCount = 0, streak = 0;
+
     function play(playerHand) {
-      const hands = ['グー', 'チョキ', 'パー'];
-      const emojis = { 'グー': '✊', 'チョキ': '✌', 'パー': '🖐' };
-      const cpuHand = hands[Math.floor(Math.random() * 3)];
+      let display = document.getElementById('cpuHandDisplay');
+      let step = 0;
+      const shuffle = setInterval(() => {
+        display.innerText = emojis[hands[step % 3]];
+        step++;
+      }, 100);
 
-      // 勝敗判定
-      let outcome = '';
-      if (playerHand === cpuHand) {
-        outcome = 'あいこ！';
-      } else if (
-        (playerHand === 'グー' && cpuHand === 'チョキ') ||
-        (playerHand === 'チョキ' && cpuHand === 'パー') ||
-        (playerHand === 'パー' && cpuHand === 'グー')
-      ) {
-        outcome = 'あなたの勝ち！';
-      } else {
-        outcome = 'あなたの負け！';
-      }
+      setTimeout(() => {
+        clearInterval(shuffle);
+        const cpuHand = hands[Math.floor(Math.random() * 3)];
+        display.innerText = `相手：${emojis[cpuHand]}`;
 
-      // 表示更新
-      document.getElementById('cpuHandDisplay').innerText = `相手：${emojis[cpuHand]}`;
-      document.getElementById('result').innerText = `あなた：${playerHand} ／ 相手：${cpuHand} → ${outcome}`;
+        let outcome = '';
+        if (playerHand === cpuHand) {
+          outcome = 'あいこ！';
+          drawCount++;
+          streak = 0;
+          document.getElementById('sound-draw').play();
+        } else if (
+          (playerHand === 'グー' && cpuHand === 'チョキ') ||
+          (playerHand === 'チョキ' && cpuHand === 'パー') ||
+          (playerHand === 'パー' && cpuHand === 'グー')
+        ) {
+          outcome = 'あなたの勝ち！';
+          winCount++;
+          streak++;
+          document.getElementById('sound-win').play();
+        } else {
+          outcome = 'あなたの負け！';
+          loseCount++;
+          streak = 0;
+          document.getElementById('sound-lose').play();
+        }
+
+        document.getElementById('result').innerText = 
+          `あなた：${playerHand} ／ 相手：${cpuHand} → ${outcome}`;
+        document.getElementById('score').innerText = 
+          `勝ち: ${winCount} | 負け: ${loseCount} | あいこ: ${drawCount}`;
+        document.getElementById('streak').innerText =
+          `連勝記録: ${streak}`;
+      }, 1000);
     }
+
+    function toggleFavorite() {
+      const key = 'favorite-janken';
+      const btn = document.getElementById('favoriteBtn');
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+        btn.classList.remove('favorited');
+      } else {
+        localStorage.setItem(key, 'true');
+        btn.classList.add('favorited');
+      }
+    }
+
+    window.onload = function () {
+      const btn = document.getElementById('favoriteBtn');
+      if (localStorage.getItem('favorite-janken')) {
+        btn.classList.add('favorited');
+      }
+    };
   </script>
 </body>
 </html>
