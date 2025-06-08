@@ -4,168 +4,133 @@
   <meta charset="UTF-8">
   <title>じゃんけんゲーム</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
-      background: #f0f8ff;
-      position: relative;
-    }
-    button {
-      font-size: 20px;
-      margin: 10px;
-      padding: 10px 20px;
-    }
-    #cpu-hand {
-      font-size: 100px;
-      margin: 30px 0 10px;
-    }
-    #result {
-      font-size: 24px;
-      margin: 10px 0;
-    }
-    .counter {
-      margin-top: 20px;
-      font-size: 16px;
-    }
-    .top-buttons {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-    .top-buttons button {
-      font-size: 24px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-    .favorited {
-      color: gold;
-    }
-    .back-button {
-      margin-top: 40px;
-      font-size: 18px;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+    button { font-size: 20px; margin: 10px; padding: 10px 20px; }
+    #cpuHand { font-size: 80px; margin: 20px; }
+    #result { font-size: 24px; margin: 20px; }
+    #streaks { margin: 20px; font-size: 18px; }
+    #backBtn, #favoriteBtn { position: fixed; bottom: 20px; font-size: 20px; padding: 10px; }
+    #backBtn { left: 20px; }
+    #favoriteBtn { right: 20px; background: none; border: none; font-size: 30px; cursor: pointer; }
+    #favoriteBtn.favorited { color: gold; }
   </style>
 </head>
 <body>
-  <div class="top-buttons">
-    <button id="favoriteBtn">★</button>
-  </div>
-
   <h1>じゃんけんゲーム</h1>
-  <p>手を選んでください！</p>
-  <div id="cpu-hand">❓</div>
-  <h2 id="result">結果がここに表示されます</h2>
-
   <div>
     <button onclick="play('グー')">グー ✊</button>
     <button onclick="play('チョキ')">チョキ ✌</button>
     <button onclick="play('パー')">パー 🖐</button>
   </div>
-
-  <div class="counter">
-    勝ち: <span id="winCount">0</span> / 負け: <span id="loseCount">0</span> / あいこ: <span id="drawCount">0</span><br>
-    連勝記録: <span id="streak">0</span>
+  <div id="cpuHand">❓</div>
+  <h2 id="result">結果がここに表示されます</h2>
+  <div id="streaks">
+    現在の連勝数: <span id="currentStreak">0</span><br>
+    最大連勝数: <span id="maxStreak">0</span>
   </div>
-
-  <button class="back-button" onclick="location.href='../../index.html'">トップに戻る</button>
-
-  <audio id="winSound" src="https://soundeffect-lab.info/sound/voice/mp3/girl1-yorokobi1.mp3" preload="auto"></audio>
-  <audio id="loseSound" src="https://soundeffect-lab.info/sound/voice/mp3/girl1-shock1.mp3" preload="auto"></audio>
-  <audio id="drawSound" src="https://soundeffect-lab.info/sound/voice/mp3/decision37.mp3" preload="auto"></audio>
+  <button onclick="resetStreaks()">記録リセット</button>
+  <button id="backBtn" onclick="location.href='../../index.html'">トップに戻る</button>
+  <button id="favoriteBtn" onclick="toggleFavorite()">★</button>
 
   <script>
     const hands = ['グー', 'チョキ', 'パー'];
-    const emojis = { 'グー': '✊', 'チョキ': '✌', 'パー': '🖐' };
-    const cpuHandElem = document.getElementById('cpu-hand');
-    const resultElem = document.getElementById('result');
-    const winElem = document.getElementById('winCount');
-    const loseElem = document.getElementById('loseCount');
-    const drawElem = document.getElementById('drawCount');
-    const streakElem = document.getElementById('streak');
-    const favoriteBtn = document.getElementById('favoriteBtn');
+    let currentStreak = 0;
+    let maxStreak = localStorage.getItem('janken_maxStreak') || 0;
+    document.getElementById('maxStreak').innerText = maxStreak;
 
-    let winCount = 0, loseCount = 0, drawCount = 0, streak = 0;
-    let intervalId;
+    let cpuInterval;
+    let isPlaying = false;
 
-    function startCpuThinking() {
-      intervalId = setInterval(() => {
-        const random = hands[Math.floor(Math.random() * 3)];
-        cpuHandElem.textContent = emojis[random];
+    const handEmojis = {
+      'グー': '✊',
+      'チョキ': '✌',
+      'パー': '🖐'
+    };
+
+    function startCpuShuffle() {
+      const cpuHandElem = document.getElementById('cpuHand');
+      let i = 0;
+      cpuInterval = setInterval(() => {
+        cpuHandElem.innerText = handEmojis[hands[i % 3]];
+        i++;
       }, 100);
     }
 
-    function stopCpuThinking() {
-      clearInterval(intervalId);
+    function stopCpuShuffle() {
+      clearInterval(cpuInterval);
     }
-
-    startCpuThinking();
 
     function play(playerHand) {
-      stopCpuThinking();
-      const cpuHand = hands[Math.floor(Math.random() * 3)];
-      cpuHandElem.textContent = emojis[cpuHand];
+      if (isPlaying) return;
+      isPlaying = true;
 
-      let result = '';
-      let sound;
-      if (playerHand === cpuHand) {
-        result = 'あいこ！';
-        drawCount++;
-        sound = 'drawSound';
-        streak = 0;
-      } else if (
-        (playerHand === 'グー' && cpuHand === 'チョキ') ||
-        (playerHand === 'チョキ' && cpuHand === 'パー') ||
-        (playerHand === 'パー' && cpuHand === 'グー')
-      ) {
-        result = 'あなたの勝ち！';
-        winCount++;
-        streak++;
-        sound = 'winSound';
+      stopCpuShuffle();
+      startCpuShuffle();
+
+      setTimeout(() => {
+        stopCpuShuffle();
+        const cpuHand = hands[Math.floor(Math.random() * 3)];
+        document.getElementById('cpuHand').innerText = handEmojis[cpuHand];
+
+        let result = '';
+        if (playerHand === cpuHand) {
+          result = 'あいこ！';
+          currentStreak = 0;
+        } else if (
+          (playerHand === 'グー' && cpuHand === 'チョキ') ||
+          (playerHand === 'チョキ' && cpuHand === 'パー') ||
+          (playerHand === 'パー' && cpuHand === 'グー')
+        ) {
+          result = 'あなたの勝ち！';
+          currentStreak++;
+          if (currentStreak > maxStreak) {
+            maxStreak = currentStreak;
+            localStorage.setItem('janken_maxStreak', maxStreak);
+          }
+        } else {
+          result = 'あなたの負け！';
+          currentStreak = 0;
+        }
+
+        document.getElementById('result').innerText = `あなた：${playerHand} ／ 相手：${cpuHand} → ${result}`;
+        document.getElementById('currentStreak').innerText = currentStreak;
+        document.getElementById('maxStreak').innerText = maxStreak;
+        isPlaying = false;
+      }, 1000);
+    }
+
+    function resetStreaks() {
+      currentStreak = 0;
+      maxStreak = 0;
+      localStorage.setItem('janken_maxStreak', 0);
+      document.getElementById('currentStreak').innerText = '0';
+      document.getElementById('maxStreak').innerText = '0';
+    }
+
+    // お気に入り機能（連動）
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    function updateFavoriteIcon() {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (favorites.includes('janken')) {
+        favoriteBtn.classList.add('favorited');
       } else {
-        result = 'あなたの負け！';
-        loseCount++;
-        streak = 0;
-        sound = 'loseSound';
+        favoriteBtn.classList.remove('favorited');
       }
-      resultElem.innerText = `あなた：${playerHand} ／ 相手：${cpuHand} → ${result}`;
-      winElem.textContent = winCount;
-      loseElem.textContent = loseCount;
-      drawElem.textContent = drawCount;
-      streakElem.textContent = streak;
-
-      const audio = document.getElementById(sound);
-      audio.volume = 0.2;
-      audio.play();
-
-      setTimeout(startCpuThinking, 1000);
-    }
-
-    // お気に入りボタン連携
-    const gameId = "janken";
-    function getFavorites() {
-      return JSON.parse(localStorage.getItem("favorites") || "[]");
-    }
-
-    function setFavoriteUI(isFav) {
-      favoriteBtn.classList.toggle("favorited", isFav);
     }
 
     function toggleFavorite() {
-      let favs = getFavorites();
-      if (favs.includes(gameId)) {
-        favs = favs.filter(f => f !== gameId);
-        setFavoriteUI(false);
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (favorites.includes('janken')) {
+        favorites = favorites.filter(f => f !== 'janken');
       } else {
-        favs.push(gameId);
-        setFavoriteUI(true);
+        favorites.push('janken');
       }
-      localStorage.setItem("favorites", JSON.stringify(favs));
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      updateFavoriteIcon();
     }
 
-    favoriteBtn.onclick = toggleFavorite;
-    setFavoriteUI(getFavorites().includes(gameId));
+    updateFavoriteIcon();
+    startCpuShuffle();
   </script>
 </body>
 </html>
