@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字当てゲーム</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .game-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+        .game-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        input {
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            width: 100px;
+            text-align: center;
+            margin: 1rem 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .message {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .attempts {
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>数字当てゲーム</h1>
+        <div class="game-info">
+            <p>1から100までの数字を当ててください！</p>
+            <p class="attempts">残りの挑戦回数: <span id="attempts">10</span>回</p>
+        </div>
+        <input type="number" id="guessInput" min="1" max="100" placeholder="数字を入力">
+        <br>
+        <button onclick="checkGuess()">予想する</button>
+        <button onclick="resetGame()">新しいゲーム</button>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        let targetNumber;
+        let attemptsLeft;
+        const maxAttempts = 10;
+
+        function initGame() {
+            targetNumber = Math.floor(Math.random() * 100) + 1;
+            attemptsLeft = maxAttempts;
+            document.getElementById('attempts').textContent = attemptsLeft;
+            document.getElementById('message').textContent = '';
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessInput').disabled = false;
+        }
+
+        function checkGuess() {
+            const guessInput = document.getElementById('guessInput');
+            const guess = parseInt(guessInput.value);
+            const messageDiv = document.getElementById('message');
+
+            if (isNaN(guess) || guess < 1 || guess > 100) {
+                messageDiv.textContent = '1から100までの数字を入力してください！';
+                messageDiv.className = 'message error';
+                return;
+            }
+
+            attemptsLeft--;
+            document.getElementById('attempts').textContent = attemptsLeft;
+
+            if (guess === targetNumber) {
+                messageDiv.textContent = `正解です！${maxAttempts - attemptsLeft}回で当てました！`;
+                messageDiv.className = 'message success';
+                guessInput.disabled = true;
+            } else if (attemptsLeft === 0) {
+                messageDiv.textContent = `ゲームオーバー！正解は${targetNumber}でした。`;
+                messageDiv.className = 'message error';
+                guessInput.disabled = true;
+            } else {
+                messageDiv.textContent = guess < targetNumber ? 'もっと大きい数字です！' : 'もっと小さい数字です！';
+                messageDiv.className = 'message';
+            }
+
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // Enterキーでも予想できるようにする
+        document.getElementById('guessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkGuess();
+            }
+        });
+
+        // ゲーム開始
+        initGame();
+    </script>
+</body>
+</html> 
