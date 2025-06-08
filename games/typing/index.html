@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タイピングチャレンジ</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0; padding: 20px;
+      text-align: center;
+    }
+    h1 { margin-bottom: 10px; }
+    .sentence {
+      font-size: 24px;
+      margin: 20px auto;
+      padding: 10px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    input[type="text"] {
+      font-size: 20px;
+      padding: 10px;
+      width: 60%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #score { margin-top: 20px; font-size: 18px; }
+    .top-bar {
+      position: absolute; top: 10px; right: 10px;
+      display: flex; gap: 10px; align-items: center;
+    }
+    .top-bar button {
+      font-size: 20px; border: none; background: none; cursor: pointer;
+    }
+    .favorited { color: gold; }
+    .footer {
+      margin-top: 40px; font-size: 14px; color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button id="favoriteBtn">★</button>
+    <button id="soundToggle">🔊</button>
+    <button id="darkModeToggle">🌙</button>
+  </div>
+  <h1>タイピングチャレンジ ⌨️</h1>
+  <div class="sentence" id="sentence">読み込み中...</div>
+  <input type="text" id="input" placeholder="ここに入力" autocomplete="off" />
+  <div id="score">スコア: 0</div>
+  <div class="footer">
+    <p><button onclick="shareToX()">Xで共有</button> ／ <button onclick="goHome()">🏠 ホームに戻る</button></p>
+    <!-- <div id="ads">ここに広告が表示されます</div> -->
+  </div>
+
+  <script>
+    const sentences = [
+      "こんにちは、世界！",
+      "たくまろのゲームセンターへようこそ。",
+      "早く正確にタイピングしよう！",
+      "JavaScriptでゲームを作るのは楽しい。",
+      "これはタイピングゲームです。"
+    ];
+    let current = 0;
+    let score = 0;
+
+    const sentenceEl = document.getElementById('sentence');
+    const inputEl = document.getElementById('input');
+    const scoreEl = document.getElementById('score');
+
+    function updateSentence() {
+      sentenceEl.textContent = sentences[current];
+      inputEl.value = '';
+      inputEl.focus();
+    }
+
+    inputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (inputEl.value === sentences[current]) {
+          score++;
+          scoreEl.textContent = `スコア: ${score}`;
+        }
+        current = (current + 1) % sentences.length;
+        updateSentence();
+      }
+    });
+
+    function goHome() {
+      window.location.href = '../../index.html';
+    }
+
+    function shareToX() {
+      const url = encodeURIComponent(location.href);
+      window.open(`https://twitter.com/intent/tweet?text=タイピングチャレンジで遊んだよ！&url=${url}`, '_blank');
+    }
+
+    // お気に入り機能
+    const gameId = 'typing';
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    function updateFavoriteIcon() {
+      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (favs.includes(gameId)) {
+        favoriteBtn.classList.add('favorited');
+      } else {
+        favoriteBtn.classList.remove('favorited');
+      }
+    }
+    favoriteBtn.onclick = () => {
+      let favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (favs.includes(gameId)) {
+        favs = favs.filter(f => f !== gameId);
+      } else {
+        favs.push(gameId);
+      }
+      localStorage.setItem('favorites', JSON.stringify(favs));
+      updateFavoriteIcon();
+    }
+    updateFavoriteIcon();
+
+    document.getElementById('soundToggle').onclick = () => alert('サウンド設定は現在未対応');
+    document.getElementById('darkModeToggle').onclick = () => alert('ダークモードは現在未対応');
+
+    updateSentence();
+  </script>
+</body>
+</html>
