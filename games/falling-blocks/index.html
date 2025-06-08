@@ -6,28 +6,34 @@
   <title>落ち物パズル</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f0f0f0;
-      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f0f0;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     canvas {
-      background: #111;
-      display: block;
-      margin: 20px auto;
-      border: 2px solid #333;
+      background: #222;
+      margin-top: 20px;
+      border: 2px solid #000;
     }
     .top-bar {
-      position: absolute; top: 10px; right: 10px;
-      display: flex; gap: 10px; align-items: center;
+      width: 100%; max-width: 480px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
     }
     .top-bar button {
-      font-size: 20px; border: none; background: none; cursor: pointer;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
     }
     .favorited { color: gold; }
-    .footer {
-      text-align: center; font-size: 14px; color: #666;
-      margin: 20px;
+    .info {
+      margin-top: 10px;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -38,106 +44,179 @@
     <button id="darkModeToggle">🌙</button>
   </div>
 
-  <h1>落ち物パズル</h1>
-  <canvas id="gameCanvas" width="240" height="400"></canvas>
+  <canvas id="game" width="240" height="400"></canvas>
 
-  <div class="footer">
-    <p><button onclick="shareToX()">Xで共有</button> ／ <button onclick="goHome()">🏠 ホームに戻る</button></p>
-    <!-- <div id="ads">ここに広告が表示されます</div> -->
+  <div class="info">
+    <p id="score">スコア: 0</p>
+    <p><button onclick="goHome()">🏠 ホームに戻る</button></p>
   </div>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const rows = 20;
-    const cols = 10;
-    const blockSize = 20;
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const ROWS = 20;
+    const COLS = 10;
+    const BLOCK_SIZE = 24;
 
-    let board = Array.from({ length: rows }, () => Array(cols).fill(0));
+    let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    let current = null;
+    let score = 0;
+    let dropInterval = 800;
+    let lastTime = 0;
+    let dropCounter = 0;
+    let isGameOver = false;
 
-    function drawBoard() {
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          ctx.fillStyle = board[r][c] ? 'cyan' : '#222';
-          ctx.fillRect(c * blockSize, r * blockSize, blockSize, blockSize);
-          ctx.strokeStyle = '#111';
-          ctx.strokeRect(c * blockSize, r * blockSize, blockSize, blockSize);
+    const pieces = [
+      [[1,1,1], [0,1,0]],
+      [[1,1], [1,1]],
+      [[0,1,1], [1,1,0]],
+      [[1,1,0], [0,1,1]],
+      [[1,1,1,1]]
+    ];
+
+    function createPiece() {
+      const shape = pieces[Math.floor(Math.random() * pieces.length)];
+      return {
+        shape,
+        x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2),
+        y: 0
+      };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (board[y][x]) drawBlock(x, y, board[y][x]);
         }
+      }
+      if (current) {
+        current.shape.forEach((row, dy) => {
+          row.forEach((value, dx) => {
+            if (value) drawBlock(current.x + dx, current.y + dy, value);
+          });
+        });
       }
     }
 
-    function dropBlock() {
-      let col = Math.floor(Math.random() * cols);
-      for (let row = 0; row < rows; row++) {
-        if (board[row][col]) {
-          board[row - 1][col] = 1;
-          checkLines();
-          return;
-        }
-      }
-      board[rows - 1][col] = 1;
-      checkLines();
+    function drawBlock(x, y, value) {
+      ctx.fillStyle = "hsl(" + (value * 40) + ", 70%, 60%)";
+      ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+      ctx.strokeStyle = "#000";
+      ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
     }
 
-    function checkLines() {
-      for (let r = rows - 1; r >= 0; r--) {
-        if (board[r].every(cell => cell)) {
-          board.splice(r, 1);
-          board.unshift(Array(cols).fill(0));
+    function collide(piece) {
+      return piece.shape.some((row, dy) =>
+        row.some((value, dx) => {
+          let x = piece.x + dx;
+          let y = piece.y + dy;
+          return value && (y >= ROWS || x < 0 || x >= COLS || board[y][x]);
+        })
+      );
+    }
+
+    function merge() {
+      current.shape.forEach((row, dy) => {
+        row.forEach((value, dx) => {
+          if (value) board[current.y + dy][current.x + dx] = value;
+        });
+      });
+    }
+
+    function sweep() {
+      outer: for (let y = ROWS - 1; y >= 0; y--) {
+        for (let x = 0; x < COLS; x++) {
+          if (!board[y][x]) continue outer;
         }
+        board.splice(y, 1);
+        board.unshift(Array(COLS).fill(0));
+        score += 100;
+        document.getElementById('score').textContent = `スコア: ${score}`;
+        y++;
       }
     }
 
-    setInterval(() => {
-      dropBlock();
-      drawBoard();
-    }, 1000);
+    function drop() {
+      current.y++;
+      if (collide(current)) {
+        current.y--;
+        merge();
+        sweep();
+        current = createPiece();
+        if (collide(current)) isGameOver = true;
+      }
+      dropCounter = 0;
+    }
 
-    // お気に入り機能
+    function update(time = 0) {
+      const deltaTime = time - lastTime;
+      lastTime = time;
+      dropCounter += deltaTime;
+      if (dropCounter > dropInterval && !isGameOver) {
+        drop();
+      }
+      draw();
+      if (!isGameOver) requestAnimationFrame(update);
+      else alert('ゲームオーバー！');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (!current) return;
+      if (e.key === 'ArrowLeft') {
+        current.x--;
+        if (collide(current)) current.x++;
+      } else if (e.key === 'ArrowRight') {
+        current.x++;
+        if (collide(current)) current.x--;
+      } else if (e.key === 'ArrowDown') {
+        drop();
+      } else if (e.key === 'ArrowUp') {
+        const rotated = current.shape[0].map((_, i) => current.shape.map(row => row[i]).reverse());
+        const old = current.shape;
+        current.shape = rotated;
+        if (collide(current)) current.shape = old;
+      }
+    });
+
+    // お気に入り
     const gameId = 'falling-blocks';
     const favoriteBtn = document.getElementById('favoriteBtn');
     function updateFavoriteIcon() {
       const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      if (favs.includes(gameId)) {
-        favoriteBtn.classList.add('favorited');
-      } else {
-        favoriteBtn.classList.remove('favorited');
-      }
+      if (favs.includes(gameId)) favoriteBtn.classList.add('favorited');
+      else favoriteBtn.classList.remove('favorited');
     }
     favoriteBtn.onclick = () => {
       let favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      if (favs.includes(gameId)) {
-        favs = favs.filter(f => f !== gameId);
-      } else {
-        favs.push(gameId);
-      }
+      if (favs.includes(gameId)) favs = favs.filter(f => f !== gameId);
+      else favs.push(gameId);
       localStorage.setItem('favorites', JSON.stringify(favs));
       updateFavoriteIcon();
     }
     updateFavoriteIcon();
 
-    // シェア／ホームボタン
-    function goHome() {
-      window.location.href = '../../index.html';
-    }
-    function shareToX() {
-      const url = encodeURIComponent(location.href);
-      window.open(`https://twitter.com/intent/tweet?text=落ち物パズルで遊んだよ！&url=${url}`, '_blank');
-    }
-
-    // サウンド設定
-    let soundOn = true;
+    // サウンド
+    let soundEnabled = true;
     document.getElementById('soundToggle').onclick = () => {
-      soundOn = !soundOn;
-      document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔈';
-    }
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔈';
+    };
 
     // ダークモード
     let darkMode = false;
     document.getElementById('darkModeToggle').onclick = () => {
       darkMode = !darkMode;
-      document.body.style.backgroundColor = darkMode ? '#222' : '#f0f0f0';
+      document.body.style.backgroundColor = darkMode ? '#111' : '#f0f0f0';
+      document.getElementById('darkModeToggle').textContent = darkMode ? '☀️' : '🌙';
+    };
+
+    function goHome() {
+      window.location.href = '../../index.html';
     }
+
+    current = createPiece();
+    update();
   </script>
 </body>
 </html>
